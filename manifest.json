@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Chart Funda",
+  "version": "1.0.0",
+  "description": "Indian stock fundamentals, ownership, and peers beside your TradingView chart. Includes an optional Chartink redirect.",
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://www.screener.in/*",
+    "*://trendlyne.com/*",
+    "*://api.kite.trade/*"
+  ],
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://www.tradingview.com/*",
+        "*://in.tradingview.com/*"
+      ],
+      "js": ["modules/tv-panel/content.js"],
+      "css": ["modules/tv-panel/style.css"]
+    },
+    {
+      "matches": [
+        "*://www.tradingview.com/*",
+        "*://in.tradingview.com/*"
+      ],
+      "js": ["modules/tv-panel/page-bridge.js"],
+      "world": "MAIN"
+    }
+  ],
+  "action": {
+    "default_title": "Chart Funda",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

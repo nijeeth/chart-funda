@@ -1,0 +1,334 @@
+/* ===== Reset & Base ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(145deg, #0c0e14 0%, #12161f 40%, #0f1320 100%);
+  color: #e2e6ee;
+  line-height: 1.4;
+  overflow: auto;
+}
+
+.container {
+  max-width: 980px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 8px 16px 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Header ===== */
+header {
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+}
+
+
+/* ===== Settings Card ===== */
+/* ===== Updates the trading view funda header ===== */
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 12px;
+}
+
+.brand-row h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #d4af37;
+}
+
+
+/* ===== Settings Card ===== */
+.card {
+  background: rgba(26, 30, 40, 0.85);
+  border: 1px solid #2a3140;
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.settings-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #d4af37;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 12px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.setting-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f0f2f5;
+}
+
+.setting-desc {
+  font-size: 12.5px;
+  color: #626b7d;
+}
+
+/* Toggle */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #3a4255;
+  border-radius: 24px;
+  transition: 0.2s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+input:checked + .slider {
+  background-color: #3b82f6;
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+/* ===== Categories Grid (2 columns × 3 rows) ===== */
+.categories-grid {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  column-gap: 8px;
+  row-gap: 16px;
+}
+
+/* Category box */
+.category-box {
+  background: rgba(22, 26, 36, 0.9);
+  border: 1px solid #2a3140;
+  border-radius: 12px;
+  padding: 6px 10px 6px;
+  border-top: 3px solid var(--accent);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s, transform 0.12s;
+}
+
+.category-box:hover {
+  transform: translateY(-1px);
+}
+
+.category-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+
+/* Links inside category */
+.category-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bookmark-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  padding: 3px 8px;
+  border-radius: 8px;
+  transition: background 0.12s;
+}
+
+.bookmark-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bookmark-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: #1e2430;
+  object-fit: contain;
+}
+
+.bookmark-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.bookmark-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #eef0f4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookmark-desc {
+  font-size: 12.5px;
+  color: #b0b8c8;
+  line-height: 1.4;
+  opacity: 1;
+}
+
+/* Accent colors per category */
+.cat-fundamentals { --accent: #60a5fa; }   /* soft blue */
+.cat-ai           { --accent: #c084fc; }   /* soft purple */
+.cat-market       { --accent: #2dd4bf; }   /* soft teal */
+.cat-funds        { --accent: #fb923c; }   /* soft orange */
+.cat-news         { --accent: #4ade80; }   /* soft green */
+.cat-books        { --accent: #818cf8; }   /* soft indigo */
+
+/* ===== Footer ===== */
+footer {
+  margin-top: 6px;
+  flex-shrink: 0;
+  text-align: center;
+  color: #d4af37;
+  font-size: 14px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .categories-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+  .setting-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.settings-card .setting-row + .setting-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #2a3140;
+}
+
+.bookmark-info {
+  position: fixed;
+  z-index: 20;
+  display: none;
+  max-width: 260px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #fff3cd;
+  border: 1px solid #e6c200;
+  color: #5c4813;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.bookmark-info.visible { display: block; }
+
+/* ===== bookmark Info box ===== */
+/* ===== Footer ===== */
+
+.footer-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.footer-top p {
+  margin: 0;
+  font-weight: 700;
+}
+
+.feedback-button {
+  padding: 4px 9px;
+  border: 1px solid #465064;
+  border-radius: 6px;
+  background: #252c38;
+  color: #dce1e8;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.feedback-button:hover {
+  background: #303948;
+}
+
+.footer-disclaimer {
+  margin-top: 4px;
+  color: #e05252;
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-align: center;
+}
