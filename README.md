@@ -28,7 +28,7 @@ The panel works on Indian listed equity. Indexes, futures, and options show a sh
 
 ## Appearance
 
-Light and dark follow the chart, and you can override that from the panel. The choice is saved.
+The panel opens in light or dark to match your chart. Use the button in the panel header to pick Light or Dark yourself, and that choice is remembered for every chart.
 
 ## Dashboard
 
