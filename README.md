@@ -222,5 +222,5 @@ Issues and pull requests are welcome. Keep a change to one behavior. This extens
 
 \## License
 
-https://sites.google.com/view/chartfunda-privacy
+MIT License. See the [LICENSE](LICENSE) file.
 
