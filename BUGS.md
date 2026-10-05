@@ -78,4 +78,4 @@ Earlier fix pass:
 ## Not bugs (checked, closed)
 
 - [dashboard] "Feedback" button has no handler — intentional placeholder, per design.
-- [tv-panel] Hyphenated tickers (e.g. BAJAJ-AUTO) — TradingView normalizes `-`/`&` to `_` in symbols (`BAJAJ_AUTO`, `M_M`), and `_` is accepted by the ticker regexes. Not a bug.
+- [tv-panel] Hyphenated tickers — TradingView normalizes `-` to `_` on both exchanges (`BAJAJ_AUTO`), and keeps `&` on NSE (`NSE:M&M`) but converts it to `_` on BSE (`BSE:M_M`). Symbol mapping bugs that followed from this were fixed for 2.0.0.
