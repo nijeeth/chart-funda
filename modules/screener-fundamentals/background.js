@@ -99,6 +99,16 @@ function topRatiosHaveNumbers(html) {
   return /<span[^>]*class="[^"]*\bnumber\b[^"]*"[^>]*>\s*[-–]?\d/i.test(block);
 }
 
+/** Data columns in the quarters table (the first <th> is the row-label). */
+function quartersColumnCount(html) {
+  const start = String(html || '').indexOf('id="quarters"');
+  if (start === -1) return 0;
+  const end = html.indexOf('</table>', start);
+  const block = html.slice(start, end === -1 ? start + 30000 : end);
+  const heads = block.match(/<th[^>]*>/g);
+  return heads ? heads.length - 1 : 0;
+}
+
 /**
  * BSE symbols such as RAJSEC 404 on /company/RAJSEC/. Screener's search
  * returns the canonical numeric page (/company/526873/). Consolidated is
@@ -112,7 +122,8 @@ async function fetchCompanyPage(slug, consolidated) {
     const cons = await fetchWithTimeout(root + 'consolidated/', { headers, redirect: 'follow' }, 8000);
     if (cons.ok) {
       const html = await cons.text();
-      if (topRatiosHaveNumbers(html)) return { url: cons.url, html, standaloneFallback: false };
+      if (topRatiosHaveNumbers(html) && quartersColumnCount(html) >= 2)
+        return { url: cons.url, html, standaloneFallback: false };
     } else if (cons.status !== 404) {
       throw new Error(`HTTP ${cons.status}`);
     }

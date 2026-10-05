@@ -32,6 +32,7 @@ When the version is declared done:
 
 ### Fixed
 
+- Companies with a stub consolidated page on Screener (e.g. MACPOWER — a single pre-IPO quarter) showed an almost-empty panel; the consolidated page is now only accepted when it carries a real quarters series, otherwise the standalone page is used.
 - Disabling the TradingView panel left a 5-second poll running that kept fetching data in the background — now stops entirely when the panel is off.
 - Indian tickers starting with `US`/`UK`/`EU` (e.g. USHAMART, EUREKAFORB) were wrongly rejected as foreign. Exchange is now authoritative: only `NSE:`/`BSE:` charts load fundamentals; foreign and commodity symbols (NASDAQ, MCX, etc.) show the "not Indian equity" message immediately.
 - A stale exchange from the previous chart could wrongly allow or block the next symbol — exchange is now cleared whenever a ticker is detected without a prefix.

@@ -28,6 +28,7 @@ _None._
 
 ## Fixed (awaiting release)
 
+- [screener] Companies whose `/consolidated/` page is a stub (e.g. MACPOWER — single pre-IPO quarter column, Dec 2021) passed the `topRatiosHaveNumbers` check and produced an almost-empty cached result. Fixed: the consolidated page is accepted only when it also has ≥2 quarter columns; otherwise falls back to standalone. — reported 2026-10-05, affects v1.0.0
 - [tv-panel] Disabling the panel left the 5-second `verifyLiveSymbol` interval running; with the widget gone `panelEmpty` was always true, so `onTickerChanged` → `loadFundamentals` fired every tick — fetches kept running while the feature was "off". Fixed: `verifyLiveSymbol` returns early when no widget exists. — reported 2026-10-05, affects v1.0.0
 - [screener] `isLikelyIndianTicker` rejected any ticker starting with `US`/`UK`/`EU` — false-rejected genuine Indian symbols (e.g. USHAMART). Fixed: exchange is now authoritative — only NSE/BSE pass when an exchange is known; the prefix heuristic is removed and the foreign-ticker blocklist is expanded. — reported 2026-10-05, affects v1.0.0
 - [security] Scraped text was injected via `innerHTML` without escaping (pros/cons, peer names and `data-symbol`, sector labels, shareholding labels, tile values). Fixed: all scraped strings pass through `esc()`. — reported 2026-10-05, affects v1.0.0
