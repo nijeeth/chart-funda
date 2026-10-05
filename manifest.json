@@ -3,7 +3,7 @@
   "minimum_chrome_version": "102",
   "name": "Chart Funda",
   "version": "2.0.0",
-  "description": "Indian stock fundamentals, ownership, peers and NSE filings beside your TradingView chart. Optional Chartink redirect.",
+  "description": "Indian stock fundamentals, ownership, peers and corporate filings beside your TradingView chart.",
   "permissions": [
     "tabs",
     "storage"
