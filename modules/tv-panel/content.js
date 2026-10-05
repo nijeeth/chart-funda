@@ -122,8 +122,8 @@
               <div class="tvf-company-name" id="tvf-company-name">Loading…</div>
             </div>
             <div class="tvf-header-actions">
-              <button class="tvf-icon-btn" id="tvf-theme-btn" title="Toggle theme"></button>
               <button class="tvf-icon-btn tvf-cons-btn" id="tvf-cons-btn" title="Consolidated / Standalone">CON</button>
+              <button class="tvf-icon-btn" id="tvf-theme-btn" title="Toggle theme"></button>
               <button class="tvf-icon-btn" id="tvf-close-btn" title="Close">✕</button>
             </div>
           </div>
@@ -714,6 +714,13 @@ function renderOwnershipPeersTab(data) {
 
 // ─── Filings tab (Fish RS Board feed) ───
 
+// "05-10-2026 02:50 IST" → "05-Oct-2026 02:50 IST"
+const FEED_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtFeedGen(gen) {
+  return String(gen || '').replace(/^(\d{2})-(\d{2})-(\d{4})/,
+    (_m, d, mm, y) => `${d}-${FEED_MON[+mm - 1] || mm}-${y}`);
+}
+
 // generated_at is "DD-MM-YYYY HH:MM IST" — hours since the feed was built
 function feedAgeHours(gen) {
   const m = String(gen || '').match(/(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2})/);
@@ -730,7 +737,7 @@ function setFeedStatus(rsGen, newsGen) {
     const age = feedAgeHours(gen);
     const fresh = age !== null && age <= 48;
     el.className = `tvf-feed-line ${fresh ? freshCls : 'tvf-status-red'}`;
-    el.innerHTML = `<span class="tvf-status-dot"></span>${esc(`${text} ${gen}`)}`;
+    el.innerHTML = `<span class="tvf-status-dot"></span>${esc(`${text} ${fmtFeedGen(gen)}`)}`;
     el.style.display = 'flex';
   };
   set('tvf-feed-rs', rsGen, 'Fish Rank Updated:', 'tvf-status-ok');
@@ -745,7 +752,7 @@ function renderRsBlock(rs, nseOnly) {
     el.innerHTML = '<div class="tvf-rs-empty">Not in RS universe</div>';
     return;
   }
-  const colored = (v) => v == null ? '–' : `<span class="${v >= 95 ? 'tvf-up' : 'tvf-down'}">${v}</span>`;
+  const colored = (v) => v == null ? '–' : `<span class="${v >= 95 ? 'tvf-up' : 'tvf-down'}">${Math.round(v)}</span>`;
   el.innerHTML = `
     <div class="tvf-rs-head">Custom Fish RS Rank <span class="tvf-rs-exp">(Experimental)</span></div>
     <div class="tvf-rs-vals">

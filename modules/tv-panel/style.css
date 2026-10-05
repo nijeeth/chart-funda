@@ -284,6 +284,7 @@
   border-color: #1d4ed8;
   font-weight: 600;
   letter-spacing: 0.04em;
+  min-width: 40px;
 }
 
 .tvf-cons-btn:hover { background: #1e40af; }
@@ -311,17 +312,14 @@
   border-bottom-color: #5eead4;
 }
 
-/* Inactive tabs get a subtle tint of their own identity color */
-.tvf-tab[data-tab="fundamentals"]:not(.tvf-tab-active) {
-  background: rgba(15, 118, 110, 0.25);
+/* Inactive tabs share a lighter indigo tint; "|" separator between them */
+.tvf-tab:not(.tvf-tab-active) {
+  background: rgba(91, 95, 199, 0.14);
 }
-.tvf-tab[data-tab="ownership-peers"]:not(.tvf-tab-active) {
-  background: rgba(180, 83, 9, 0.25);
+.tvf-tab + .tvf-tab {
+  border-left: 1px solid var(--tvf-border);
 }
-.tvf-tab[data-tab="filings"]:not(.tvf-tab-active) {
-  background: rgba(91, 95, 199, 0.25);
-}
-#tvf-widget[data-theme="light"] .tvf-tab[data-tab]:not(.tvf-tab-active) {
+#tvf-widget[data-theme="light"] .tvf-tab:not(.tvf-tab-active) {
   color: var(--tvf-text);
 }
 
