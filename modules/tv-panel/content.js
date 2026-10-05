@@ -81,6 +81,7 @@
   let lastManualSwitchAt = 0;
   let clickOutsideOn = true;
   let earningsVisible = false;
+  let lastPeerSymbol = null; // set only when a peer row is clicked; Back returns to it once
 
   function detectTheme() {
     const root = document.documentElement;
@@ -158,7 +159,9 @@
           </div>
           <div class="tvf-tab-content" id="tvf-tab-ownership-peers" style="display:none">
             <div class="tvf-shareholding" id="tvf-shareholding"></div>
-            <div class="tvf-peers-heading">Peers</div>
+            <div class="tvf-peers-heading"><span>Peers</span>
+              <button class="tvf-back-btn" id="tvf-back-btn" type="button" disabled title="No previous chart">← Back</button>
+            </div>
             <div class="tvf-peers" id="tvf-peers"></div>
           </div>
           <div class="tvf-tab-content" id="tvf-tab-filings" style="display:none">
@@ -233,6 +236,14 @@
     infoBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       showInfoTip(!infoTip.classList.contains("visible"));
+    });
+
+    widget.querySelector("#tvf-back-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!lastPeerSymbol) return;
+      sendRuntimeMessage({ type: "tvf_request_symbol", symbol: lastPeerSymbol });
+      lastPeerSymbol = null;
+      updateBackBtn();
     });
 
     widget.querySelector("#tvf-theme-btn").addEventListener("click", (e) => {
@@ -714,6 +725,8 @@ function renderPeers(peers) {
       openChartPreferNse(symbol).then((opened) => {
         if (!opened || !opened.ok) return;
         lastManualSwitchAt = Date.now();
+        if (currentTicker && currentTicker !== opened.ticker) lastPeerSymbol = currentTicker;
+        updateBackBtn();
         currentExchange = opened.exchange;
         onTickerChanged(opened.ticker);
       });
@@ -735,6 +748,13 @@ const FEED_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','N
 function fmtFeedGen(gen) {
   return String(gen || '').replace(/^(\d{2})-(\d{2})-(\d{4})/,
     (_m, d, mm, y) => `${d}-${FEED_MON[+mm - 1] || mm}-${y}`);
+}
+
+function updateBackBtn() {
+  const b = document.getElementById("tvf-back-btn");
+  if (!b) return;
+  b.disabled = !lastPeerSymbol;
+  b.title = lastPeerSymbol ? `Back to ${lastPeerSymbol}` : "No previous chart";
 }
 
 // generated_at is "DD-MM-YYYY HH:MM IST" — hours since the feed was built
@@ -833,8 +853,10 @@ function requestFilings(ticker, forceRefresh) {
       if (chip) {
         const rank = d.rs && d.rs.rank;
         if (!d.nseOnly && rank != null) {
-          chip.textContent = Math.round(rank);
+          const rv = (x) => (x == null ? '–' : Math.round(x));
+          chip.textContent = rv(rank);
           chip.className = `tvf-rs-chip ${rank >= 95 ? 'tvf-up' : 'tvf-down'}`;
+          chip.title = `Custom Fish RS Rank (Experimental)\n1W ${rv(d.rs.w1)} · 1M ${rv(d.rs.m1)} · 3M ${rv(d.rs.m3)} · 6M ${rv(d.rs.m6)}`;
           chip.style.display = '';
         } else {
           chip.style.display = 'none';

@@ -290,18 +290,19 @@
 
 .tvf-cons-btn:hover { background: #1e40af; }
 
-/* Fish RS rank chip in the header actions row */
+/* Fish RS rank chip — circular, header actions row */
 .tvf-rs-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
+  width: 26px;
+  min-width: 26px;
   height: 26px;
-  padding: 0 6px;
-  border-radius: 6px;
+  padding: 0;
+  border-radius: 50%;
   border: 1px solid currentColor;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: default;
 }
 .tvf-rs-chip.tvf-up { color: var(--tvf-up); background: rgba(8, 153, 129, 0.12); }
@@ -518,7 +519,28 @@
   text-transform: none;
 }
 
-.tvf-peers-heading { padding: 8px 12px 0; }
+.tvf-peers-heading {
+  padding: 8px 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tvf-back-btn {
+  background: transparent;
+  border: 1px solid rgba(192, 132, 252, 0.5);
+  color: #c084fc;
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.tvf-back-btn:hover:not(:disabled) { background: rgba(192, 132, 252, 0.12); }
+.tvf-back-btn:disabled { opacity: 0.4; cursor: default; }
 
 .tvf-growth-grid {
   display: grid;
