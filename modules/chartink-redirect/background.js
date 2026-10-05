@@ -62,11 +62,12 @@ function extractSymbol(url) {
  * Build the TradingView URL for a given symbol (always NSE).
  */
 function buildTradingViewUrl(symbol) {
-  // TradingView spells '&' and '-' as '_' (M&M → M_M, BAJAJ-AUTO → BAJAJ_AUTO)
+  // The redirect always targets NSE, where TradingView keeps '&' in symbols
+  // (NSE:M&M, NSE:J&KBANK) and turns '-' into '_' (BAJAJ_AUTO).
   const clean = symbol.replace(/^NSE:/i, "")
-    .replace(/[&-]/g, "_")
-    .replace(/[^A-Za-z0-9._]/g, "");
-  return TRADINGVIEW_BASE + clean.toUpperCase();
+    .replace(/-/g, "_")
+    .replace(/[^A-Za-z0-9._&]/g, "");
+  return TRADINGVIEW_BASE + encodeURIComponent(clean.toUpperCase());
 }
 
 /**

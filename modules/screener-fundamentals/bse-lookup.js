@@ -6,7 +6,7 @@
 //  Cached in chrome.storage.local, refreshed every 24h.
 // ─────────────────────────────────────────────────
 
-const BSE_LOOKUP_CACHE_KEY = 'bse_lookup_cache_v2';
+const BSE_LOOKUP_CACHE_KEY = 'bse_lookup_cache_v3'; // v3: indexes '_' forms too
 const BSE_LOOKUP_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
@@ -60,7 +60,10 @@ async function fetchAndBuildBseLookup() {
     const segment = cols[10];
     if (segment === 'BSE' && instrumentType === 'EQ' && exchangeToken && tradingsymbol) {
       byToken[exchangeToken] = tradingsymbol;
-      bySymbol[tradingsymbol.toUpperCase()] = exchangeToken;
+      const symUp = tradingsymbol.toUpperCase();
+      bySymbol[symUp] = exchangeToken;
+      // TradingView shows BSE tickers with '&'/'-' as '_' (BSE:M_M, BSE:BAJAJ_AUTO)
+      bySymbol[symUp.replace(/[&-]/g, '_')] = exchangeToken;
     }
   }
   return { byToken, bySymbol };

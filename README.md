@@ -55,7 +55,6 @@ Chart Funda has no account and does not send your charts or holdings anywhere. S
 | Screener.in | Reads the company page, shareholding, and peers. |
 | Kite instruments | Matches a BSE symbol to Screener's company page. |
 | trendlyne.com |  Reads the company earning date |
-| fish-rs-board.pages.dev | Reads the curated NSE filings list and Fish RS rank shown in the Filings tab. |
 | Tabs | Used only by the Chartink redirect, to read a Chartink stock address and open the TradingView chart. |
 
 Company pages are kept for 12 hours. The BSE symbol list is kept for 24 hours. Tijori and the dashboard links are ordinary web links. The extension does not request those sites.

@@ -32,6 +32,7 @@ When the version is declared done:
 
 ### Fixed
 
+- Signoff pass: BSE `_` tickers (BAJAJ_AUTO, M_M…) now resolve via Kite symbol normalization; NSE peer links with `&` open the right chart; Chartink `&` symbols redirect correctly; the filings feed re-check uses ETag (304) instead of a ~6 MB download per ticker change; stale per-ticker feed data can't survive a worker restart; removed the fish-rs-board host permission entirely (CORS-open feed — no permission prompt on update); pill double-click no longer errors; panel off/on state resets cleanly; PDF/Trendlyne links are host-allowlisted; unknown tickers are remembered briefly so they don't re-probe.
 - Audit follow-ups: `_` tickers (M_M, BAJAJ_AUTO…) now resolve on Screener via `-`/`&` slug fallbacks; BSE peer symbols normalized; earnings countdown recomputed from the stored date instead of going stale; Chartink redirect handles `&` symbols and `?query` URLs; no fetches while the panel is closed; CON/STD responses can't paint over a newer mode; stale Screener/Tijori links cleared on errors; dead `watchHistory` removed; duplicate title observer removed.
 - Companies with a stub consolidated page on Screener (e.g. MACPOWER — a single pre-IPO quarter) showed an almost-empty panel; the consolidated page is now only accepted when it carries a real quarters series, otherwise the standalone page is used.
 - Disabling the TradingView panel left a 5-second poll running that kept fetching data in the background — now stops entirely when the panel is off.

@@ -28,6 +28,21 @@ _None._
 
 ## Fixed (awaiting release)
 
+Reviewer signoff batch (review/v2.0.0 @ 2f36f58):
+
+- [screener] BSE `_` tickers (BAJAJ_AUTO, NAM_INDIA, M_M) failed entirely — the Kite `bySymbol` map was keyed by the exchange form only. Fixed: `_`-normalized symbols are indexed too (lookup cache bumped to v3).
+- [screener] NSE `_` tickers wasted a guaranteed-404 request and a can-never-match `&` variant (NSE keeps `&`, e.g. `NSE:M&M`). Fixed: only the `-` variant is tried. Corrected BUGS.md note — `M_M` is a BSE form; NSE is `M&M`.
+- [screener] NSE peer slugs with `&` (M&M) were converted to `M_M` — peer clicks fell back to the BSE chart or failed. Fixed: only `-`→`_` on the NSE branch.
+- [screener] An unknown ticker re-ran all fetch paths on every visit. Fixed: 30-minute not-found cache.
+- [filings] The `Range` probe was ignored by the host (200, full body) — every ticker change downloaded ~6 MB. Fixed: ETag/If-None-Match conditional request (304 verified).
+- [filings] Per-ticker results were served without checking the feed generation — stale data after SW restart. Fixed: cache serves only when `cached.gen === feed.gen`.
+- [manifest] `fish-rs-board.pages.dev` host permission would disable the extension for existing users on update. Fixed: removed — the host is CORS-open (`ACAO: *`), verified the fetch needs no permission.
+- [tv-panel] Double-clicking the pill threw ReferenceError (`sendRuntimeMessage` undefined) — the separate dblclick handler already toggles size; removed the dead call.
+- [tv-panel] `chrome.runtime.lastError` read inside a nested callback logged "Unchecked runtime.lastError". Fixed: captured in the response callback.
+- [tv-panel] Panel off→on left stale `panelOpen`/`pendingTicker` — first pill click did nothing. Fixed: both reset on teardown/rebuild.
+- [security] Filing PDF and Trendlyne links are now scheme/host-allowlisted (`nsearchives.nseindia.com`, `trendlyne.com`).
+- [chartink] `M&M` was still sent to non-existent `NSE:M_M`. Fixed: `&` preserved and URL-encoded (NSE keeps `&`); `-`→`_` still applies.
+
 Audit batch (from external review, commit 53abd3a):
 
 - [screener] TradingView `_` tickers (M_M, BAJAJ_AUTO, J&KBANK…) 404'd on Screener and returned empty search — fundamentals failed entirely for several large-caps. Fixed: direct fetch tries `_`→`-` then `_`→`&` slug variants; empty `_` searches retry with `&`. Verified live: M_M→M&M, BAJAJ_AUTO→BAJAJ-AUTO resolve. — reported 2026-10-05, affects v1.0.0

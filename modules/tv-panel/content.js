@@ -201,7 +201,8 @@
       if (pillClickTimer) {
         clearTimeout(pillClickTimer);
         pillClickTimer = null;
-        sendRuntimeMessage({ type: "tvf_change_pill" });
+        // suppress the second click — the separate dblclick handler
+        // below toggles the pill between classic and compact
       } else {
         pillClickTimer = setTimeout(() => {
           pillClickTimer = null;
@@ -866,8 +867,11 @@ function renderFilings(filings, nseOnly) {
     const inner = `
       <div class="tvf-filing-top"><span class="tvf-filing-when">${esc(fmtFilingTime(f.ts))}</span>${chip}</div>
       <div class="tvf-filing-desc">${esc(f.desc)}</div>`;
-    return f.pdf
-      ? `<a class="tvf-filing-card" href="${esc(f.pdf)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
+    // Filing links must be NSE archive PDFs — anything else renders unlinked
+    const pdf = (typeof f.pdf === 'string' && f.pdf.startsWith('https://nsearchives.nseindia.com/'))
+      ? f.pdf : null;
+    return pdf
+      ? `<a class="tvf-filing-card" href="${esc(pdf)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
       : `<div class="tvf-filing-card tvf-filing-nolink">${inner}</div>`;
   }).join('');
 }
@@ -938,7 +942,7 @@ function requestEarnings(ticker, forceRefresh) {
       renderEarningsBanner(response.data);
       const url = response.data && response.data.url;
       if (tl) {
-        if (url) { tl.href = url; tl.style.display = ''; }
+        if (url && url.startsWith('https://trendlyne.com/')) { tl.href = url; tl.style.display = ''; }
         else { tl.style.display = 'none'; tl.removeAttribute('href'); }
       }
     }
@@ -953,12 +957,13 @@ function loadFundamentals(ticker, forceRefresh) {
     chrome.runtime.sendMessage(
       { type: 'FETCH_SCREENER', ticker, exchange: currentExchange, consolidated, forceRefresh: !!forceRefresh },
       (response) => {
+        const lastErr = chrome.runtime.lastError; // must be read in this callback
         chrome.storage.local.get(['consolidated'], (d) => {
         // Drop responses for a superseded ticker or CON/STD mode —
         // the toggle fires a fresh request for the new mode.
         if (ticker !== currentTicker || (d.consolidated !== false) !== consolidated) return;
         showLoading(false);
-        if (chrome.runtime.lastError || !response) {
+        if (lastErr || !response) {
           showError('Extension error — try reloading the tab.');
           return;
         }
@@ -1117,8 +1122,12 @@ async function verifyLiveSymbol() {
       if (changes.tvPanelEnabled.newValue === false) {
         document.getElementById("tvf-widget")?.remove();
         currentTicker = null;
+        panelOpen = false;
+        pendingTicker = null;
       } else {
         currentTicker = null;
+        panelOpen = false;
+        pendingTicker = null;
         init();
       }
     });

@@ -49,6 +49,19 @@ function writeCache(ticker, consolidated, data) {
   chrome.storage.local.set({ [key]: { ts: Date.now(), data } }, () => {});
 }
 
+// Short-lived negative cache — a "not found" answer is remembered so
+// revisiting an unknown ticker doesn't cost 8 requests every time.
+const NOT_FOUND_TTL_MS = 30 * 60 * 1000;
+const nfKey = (ticker, consolidated) => `screener_nf:${ticker}:${consolidated}`;
+async function readNotFound(ticker, consolidated) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([nfKey(ticker, consolidated)], (data) => {
+      const entry = data[nfKey(ticker, consolidated)];
+      resolve(!!(entry && Date.now() - entry.ts < NOT_FOUND_TTL_MS));
+    });
+  });
+}
+
 // ─── Peers cache — keyed by warehouse id, same 12h TTL as company data ───
 function peersCacheKey(warehouseId) {
   return `peers_cache:${warehouseId}`;
@@ -152,6 +165,7 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
   if (!forceRefresh) {
     const cached = await readCache(ticker, consolidated);
     if (cached) { cached._cached = true; return cached; }
+    if (await readNotFound(ticker, consolidated)) throw new Error(indianEquityError(ticker));
   }
   const isBse = String(exchange || '').toUpperCase() === 'BSE';
   if (isBse) {
@@ -167,10 +181,10 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
       console.log('[Screener Fundamentals] BSE scrip lookup failed:', e.message);
     }
   } else {
-    // TradingView normalizes '-' and '&' to '_' (BAJAJ_AUTO, M_M) — try the
-    // exchange spellings before falling back to search.
+    // On NSE TradingView normalizes '-' to '_' (BAJAJ_AUTO) but keeps '&'
+    // (NSE:M&M is real) — so only the '-' variant can exist.
     const slugs = ticker.includes('_')
-      ? [...new Set([ticker, ticker.replace(/_/g, '-'), ticker.replace(/_/g, '&')])]
+      ? [...new Set([ticker, ticker.replace(/_/g, '-')])]
       : [ticker];
     for (const slug of slugs) {
       try {
@@ -193,6 +207,7 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
   } catch (e) {
     console.log('[Screener Fundamentals] search API failed:', e.message);
   }
+  chrome.storage.local.set({ [nfKey(ticker, consolidated)]: { ts: Date.now() } }, () => {});
   throw new Error(indianEquityError(ticker));
 }
 
@@ -215,9 +230,13 @@ async function fetchViaScreenerSearch(ticker, consolidated) {
     return searchRes.json();
   };
   let results = await doSearch(ticker);
-  // 'M_M' searches empty on Screener — the exchange form is 'M&M'
+  // '_' tickers search empty — retry the exchange spellings ('-' on NSE,
+  // '&' can appear in Kite/BSE forms via the search box).
   if ((!Array.isArray(results) || results.length === 0) && ticker.includes('_')) {
-    results = await doSearch(ticker.replace(/_/g, '&'));
+    results = await doSearch(ticker.replace(/_/g, '-'));
+    if (!Array.isArray(results) || results.length === 0) {
+      results = await doSearch(ticker.replace(/_/g, '&'));
+    }
   }
   if (!Array.isArray(results) || results.length === 0) throw new Error('No search results');
   const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -568,7 +587,8 @@ async function fetchPeers(warehouseId, selfTicker) {
     if (r.isMedian) return r;
     const symbol = /^\d+$/.test(r.slug)
       ? (byToken[r.slug] ? String(byToken[r.slug]).replace(/[&\-]/g, '_') : null)
-      : r.slug.replace(/[&\-]/g, '_');
+      // NSE keeps '&' in symbols (NSE:M&M) — only '-' becomes '_'
+      : r.slug.replace(/-/g, '_');
     return {
       ...r,
       symbol,
