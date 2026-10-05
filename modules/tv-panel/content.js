@@ -170,7 +170,7 @@
           <a class="tvf-link-btn tvf-link-tijori" id="tvf-tijori-link" href="#" target="_blank"><img class="tvf-site-logo" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAB2klEQVR4nO2bvUoDQRRGv9mZjUEjgjZ5AW0EW23F9HY2+iLaiI8i6APYC7YWCmJnYy0KgiZGs9mda+E2wR+4SuYTvadM5pKTwzKTIgMY/xunHZAz5FUv33I+m8UQMg4pNTmcVPH+6nZ4uLiBQjMatJ9VPjb2Qhvb6AvQ1E6PCQdg0mEhNuaBYkczqg4gUZbRdSi72snxEqraTUmmHohu8Ese/FGkdlOiDvDXsADqCS8N/dmRAIc3NyX6TdC7c0xjLXzn2SmAso/PD18BwiQA9dcAMAXIszvXjqkDBCl2493ENUppx4hKMVo6F1d8M1uvPtmqfBOonuOR9LNTjVuWwaPvboIM9hU+AL7xQ+gnyEljEy0clA8fvx9mAPSw5VaLw1ROSTfBCGl9eYRKvSYhdgqwBdhYALYAGwvAFmBjAdgCbCwAW4CNBWALsLEAbAE2FoAtwMYCsAXYWAC2ABsLwBZgYwHYAmwsAFuAjQVgC7CxAGwBNhaALcDGArAF2FgAtgAbC8AWYGMB2AJsLABbgI0FYAuwsQBsATapA+TwwId/mRcAvl6TEPWNkZ+Q5XKBwiHMAe/umngAg3pNQpJffxoeNzthWpbi0+jr2RRQdt1l3nk5Tu1k/GdeASbzbT5QHK9EAAAAAElFTkSuQmCC" />Tijori<span class="tvf-ext">↗</span></a>
           <a class="tvf-link-btn tvf-link-trendlyne" id="tvf-trendlyne-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none">Trendlyne<span class="tvf-ext">↗</span></a>
         </div>
-        <button class="tvf-credit" id="tvf-credit" type="button"><span class="tvf-credit-name">NijeethFish</span><span class="tvf-credit-sep">|</span><span class="tvf-credit-brand">Chart Funda v1.0</span></button>
+        <button class="tvf-credit" id="tvf-credit" type="button"><span class="tvf-credit-name">NijeethFish</span><span class="tvf-credit-sep">|</span><span class="tvf-credit-brand">Chart Funda v2.0</span></button>
       </div>
       
     `;
