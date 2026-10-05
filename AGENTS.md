@@ -10,3 +10,5 @@
 ## Project
 
 Manifest V3 Chrome extension, no build step. Load unpacked from this folder to test; reload the extension and refresh the TradingView tab after changes.
+
+This folder is git-linked to `github.com/nijeeth/chart-funda` (remote `origin`, branch `main`). Tag `backup-2026-10-05` is the pre-fix revert point — `git checkout backup-2026-10-05` restores the shipped v1.0.0 state.

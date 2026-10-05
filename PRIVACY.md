@@ -50,6 +50,8 @@ To show fundamentals data, Chart Funda fetches publicly available pages from:
 
 \- api.kite.trade (public BSE instrument list — no account or API key required)
 
+\- google.com/s2/favicons (site icons shown next to dashboard links — image requests only, no data sent)
+
 
 
 These requests are made directly from your browser to display data in the extension. We do not see, log, or store the contents of these requests ourselves.

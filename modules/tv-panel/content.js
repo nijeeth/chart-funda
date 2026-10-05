@@ -1,13 +1,13 @@
 // ─────────────────────────────────────────────────
-//  tv-panel/content.js — Step 3a: skeleton only
-//  Ticker detection, pill, panel shell, header, tabs.
-//  No tab content rendering yet — that's 3b/3c.
+//  tv-panel/content.js
+//  Ticker detection, pill, panel shell, and the
+//  fundamentals / ownership-peers renderers.
 // ─────────────────────────────────────────────────
 (function () {
   "use strict";
 
   const EXCHANGES = ["NSE", "BSE", "MCX", "NASDAQ", "NYSE", "LSE", "AMEX", "CBOE"];
-  const NON_INDIAN_EXCHANGES = new Set(["NASDAQ", "NYSE", "LSE", "AMEX", "CBOE"]);
+  const INDIAN_EXCHANGES = new Set(["NSE", "BSE"]);
   const INDEX_NAMES = new Set([
     "NIFTY", "NIFTY50", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50",
     "SENSEX", "BANKEX", "INDIAVIX", "CNXAUTO", "CNXIT", "CNXPHARMA", "CNXFMCG",
@@ -22,10 +22,10 @@
     const m = up.match(new RegExp(`^(${EXCHANGES.join("|")})[:\\-](.+)$`));
     const exchange = m ? m[1] : null;
     const ticker = m ? m[2] : up;
+    currentExchange = exchange; // cleared when no prefix — never let a stale exchange linger
     if (!ticker || ticker.length < 2 || ticker.length > 20) return null;
     if (EXCHANGES.includes(ticker)) return null;
     if (!/^[A-Z0-9&_.]{2,20}$/.test(ticker)) return null;
-    if (exchange) currentExchange = exchange;
     return ticker;
   }
 
@@ -41,21 +41,17 @@
   function tickerFromURL() {
     try {
       const sym = new URLSearchParams(window.location.search).get("symbol");
-      if (sym) {
-        const parts = sym.includes(":") ? sym.split(":") : [null, sym];
-        if (parts[0]) currentExchange = parts[0].toUpperCase();
-        return cleanTicker(parts[1]);
-      }
+      if (sym) return cleanTicker(sym);
     } catch (_) {}
     return null;
   }
 
   function detectTicker() {
-    return tickerFromTitle() || tickerFromURL();
+    return tickerFromURL() || tickerFromTitle();
   }
 
   function isIndianTicker(ticker, exchange) {
-    if (exchange && NON_INDIAN_EXCHANGES.has(exchange)) return false;
+    if (exchange && !INDIAN_EXCHANGES.has(exchange.toUpperCase())) return false;
     if (!ticker) return false;
     if (ticker.includes(".")) return false;
     return true;
@@ -85,10 +81,17 @@
   let lastManualSwitchAt = 0;
 
   function detectTheme() {
-    const isDark =
-      document.documentElement.classList.contains("theme-dark") ||
-      document.body.classList.contains("theme-dark") ||
-      document.querySelector('[class*="dark"]') !== null;
+    const root = document.documentElement;
+    let isDark;
+    if (root.classList.contains("theme-dark") || document.body.classList.contains("theme-dark")) {
+      isDark = true;
+    } else if (root.classList.contains("theme-light") || document.body.classList.contains("theme-light")) {
+      isDark = false;
+    } else {
+      // No explicit theme class — judge by the page's actual background color.
+      const m = getComputedStyle(document.body).backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      isDark = m ? (0.299 * m[1] + 0.587 * m[2] + 0.114 * m[3]) < 128 : true;
+    }
     tvTheme = isDark ? "dark" : "light";
     const widget = document.getElementById("tvf-widget");
     if (widget) widget.setAttribute("data-theme", tvTheme);
@@ -188,7 +191,7 @@
         const next = !(data.consolidated !== false);
         chrome.storage.local.set({ consolidated: next });
         consBtn.textContent = next ? "CON" : "STD";
-        if (currentTicker) loadFundamentals(currentTicker, true);
+        if (currentTicker) loadFundamentals(currentTicker, false); // per-mode cache can serve this
       });
     });
 
@@ -364,7 +367,7 @@ function renderStatusBar(cached, staleness, growth, standaloneFallback) {
   el.innerHTML = `
     <span class="tvf-status-dot ${cached ? 'tvf-dot-cached' : 'tvf-dot-live'}"></span>
     <span class="tvf-status-label">${liveText}</span>
-    <span class="tvf-status-date">data fetched from Q ending ${quarterEndingLabel(latestQ)}${sourceNote}</span>
+    <span class="tvf-status-date">data fetched from Q ending ${esc(quarterEndingLabel(latestQ))}${sourceNote}</span>
     <button class="tvf-refresh-btn" id="tvf-refresh-btn" type="button">Refresh</button>
   `;
 
@@ -379,8 +382,16 @@ function renderSector(sector) {
   if (!el) return;
   if (!sector || sector.length === 0) { el.innerHTML = ''; return; }
   el.innerHTML = sector.map((s, i) =>
-    `<a href="https://www.screener.in${s.href}" target="_blank" class="${i === sector.length - 1 ? 'tvf-sector-last' : ''}">${s.label}</a>`
+    `<a href="https://www.screener.in${esc(s.href)}" target="_blank" class="${i === sector.length - 1 ? 'tvf-sector-last' : ''}">${esc(s.label)}</a>`
   ).join(' <span class="tvf-sector-sep">›</span> ');
+}
+
+// Escape scraped strings before they go into innerHTML — source HTML
+// entities are decoded by the parser, so raw < or & can become live markup.
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
 }
 
 const TILE_DEFS = [
@@ -410,7 +421,7 @@ function renderTiles(tiles) {
         ? `<div class="tvf-tile-sub tvf-note-up">▲ at low</div>`
         : `<div class="tvf-tile-sub tvf-up">▲ ${pct.toFixed(1)}%</div>`;
     }
-    return `<div class="tvf-tile"><div class="tvf-tile-label">${t.label}</div><div class="tvf-tile-val">${t.fmt(tiles[t.key])}</div>${sub}</div>`;
+    return `<div class="tvf-tile"><div class="tvf-tile-label">${t.label}</div><div class="tvf-tile-val">${esc(t.fmt(tiles[t.key]))}</div>${sub}</div>`;
   }).join('');
 }
 
@@ -460,11 +471,11 @@ function renderProsCons(pros, cons) {
   let html = '';
   if (pros && pros.length) {
     html += '<div class="tvf-pros-heading">Strengths</div><div class="tvf-proscons-grid">' +
-      pros.map(p => `<div class="tvf-pro-item">${p}</div>`).join('') + '</div>';
+      pros.map(p => `<div class="tvf-pro-item">${esc(p)}</div>`).join('') + '</div>';
   }
   if (cons && cons.length) {
     html += '<div class="tvf-cons-heading">Concerns</div><div class="tvf-proscons-grid">' +
-      cons.map(c => `<div class="tvf-con-item">${c}</div>`).join('') + '</div>';
+      cons.map(c => `<div class="tvf-con-item">${esc(c)}</div>`).join('') + '</div>';
   }
   el.innerHTML = html;
 }
@@ -520,7 +531,7 @@ function sparklinePath(vals) {
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(' ');
   const up = vals[vals.length - 1] >= vals[vals.length - 2];
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="${up ? 'currentColor' : 'currentColor'}" stroke-width="1.5" class="${up ? 'tvf-up' : 'tvf-down'}"/></svg>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.5" class="${up ? 'tvf-up' : 'tvf-down'}"/></svg>`;
 }
 
 const SHARE_ROWS = [
@@ -540,7 +551,7 @@ function shareLine(row) {
       : `<span class="${chg > 0 ? 'tvf-up' : 'tvf-down'}">${chg > 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(2)}%</span>`;
   const latestHtml = row.latest == null ? '–' : `${row.latest}%`;
   return `<div class="tvf-share-row">
-    <span class="tvf-share-label">${row.label}</span>
+    <span class="tvf-share-label">${esc(row.label)}</span>
     <span class="tvf-share-pct">${latestHtml}</span>
     <span class="tvf-share-qoq">${chgHtml}</span>
     <span class="tvf-share-spark">${sparklinePath(row.trend)}</span>
@@ -574,7 +585,7 @@ function plainNumber(raw) {
   if (s === '–') return s;
   const n = parseFloat(s.replace(/,/g, ''));
   if (!Number.isFinite(n)) return s;
-  return String(n);
+  return n.toLocaleString('en-IN');
 }
 
 function marketCapInteger(raw) {
@@ -594,22 +605,22 @@ function renderPeers(peers) {
   }
   const header = '<div class="tvf-peer-row tvf-peer-header"><span>Company</span><span>CMP</span><span>P/E</span><span>Mkt Cap</span></div>';
   const peerCells = (cells) => {
-    const cmp = plainNumber(cells[0]);
-    const pe = plainNumber(cells[1]);
-    const mcap = marketCapInteger(cells[2]);
+    const cmp = esc(plainNumber(cells[0]));
+    const pe = esc(plainNumber(cells[1]));
+    const mcap = esc(marketCapInteger(cells[2]));
     return `<span>${cmp}</span><span>${pe}</span><span>${mcap}</span>`;
   };
   el.innerHTML = header + peers.map((p) => {
     const nums = (p.cells || []).slice(0, 3);
     if (p.isMedian) {
-      return `<div class="tvf-peer-row tvf-peer-median"><span>${p.name}</span>${peerCells(nums)}</div>`;
+      return `<div class="tvf-peer-row tvf-peer-median"><span>${esc(p.name)}</span>${peerCells(nums)}</div>`;
     }
     if (!p.symbol) {
-      return `<div class="tvf-peer-row"><span class="tvf-peer-name">${p.name}</span>${peerCells(nums)}</div>`;
+      return `<div class="tvf-peer-row"><span class="tvf-peer-name">${esc(p.name)}</span>${peerCells(nums)}</div>`;
     }
     const selfCls = p.isSelf ? ' tvf-peer-self' : '';
-    return `<div class="tvf-peer-row tvf-peer-clickable${selfCls}" data-symbol="${p.symbol}">
-      <span class="tvf-peer-name">${p.name}</span>
+    return `<div class="tvf-peer-row tvf-peer-clickable${selfCls}" data-symbol="${esc(p.symbol)}">
+      <span class="tvf-peer-name">${esc(p.name)}</span>
       ${peerCells(nums)}
     </div>`;
   }).join('');
@@ -692,7 +703,7 @@ function loadFundamentals(ticker, forceRefresh) {
 
         if (response.data.warehouseId) {
           chrome.runtime.sendMessage(
-            { type: 'FETCH_PEERS', warehouseId: response.data.warehouseId, ticker },
+            { type: 'FETCH_PEERS', warehouseId: response.data.warehouseId, ticker, forceRefresh: !!forceRefresh },
             (peerResp) => {
               if (ticker !== currentTicker) return;
               if (peerResp && peerResp.ok) {
@@ -762,6 +773,7 @@ function requestLiveSymbol(timeoutMs = 1000) {
  * title/URL detection if the bridge gives no answer.
  */
 async function verifyLiveSymbol() {
+  if (!document.getElementById("tvf-widget")) return; // panel disabled — don't poll or fetch
   const live = await requestLiveSymbol();
   const nameEl = document.getElementById("tvf-company-name");
   const panelEmpty = !nameEl || nameEl.textContent === "Loading…";

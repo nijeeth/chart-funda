@@ -105,24 +105,8 @@
     })();
   });
 
-  document.addEventListener("tvf_change_symbol", function (event) {
-    const { symbol, exchange } = event.detail;
-    const tvApi = window.TradingViewApi || window.TradingView;
-
-    if (tvApi) {
-      try {
-        const chart = getChart(tvApi);
-        const fullSymbol = exchange ? `${exchange}:${symbol}` : symbol;
-        applySymbol(tvApi, chart, fullSymbol);
-      } catch (err) {
-        console.error("[TV Funda] Soft nav error:", err);
-      }
-    }
-  });
-
-  // Reader — not used yet, kept dormant for a possible future
-  // improvement to ticker detection (reading TradingView's own
-  // authoritative symbol/exchange instead of scraping the title/URL).
+  // Reader — answers tvf_request_symbol with TradingView's own
+  // authoritative symbol/exchange (more reliable than title/URL scraping).
   document.addEventListener("tvf_request_symbol", function () {
     const api = window.TradingViewApi || window.TradingView;
     let ticker = null;

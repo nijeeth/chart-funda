@@ -15,13 +15,16 @@ const KNOWN_FOREIGN = new Set([
   'AMD','INTC','QCOM','AVGO','ORCL','CRM','ADBE','PYPL','ABNB','UBER','LYFT',
   'JPM','GS','MS','BAC','WFC','C','V','MA','DIS','SBUX',
   'SPY','QQQ','VIX','DXY','EURUSD','GBPUSD','USDINR','XAUUSD','BTCUSD','ETHUSD',
-  'US10Y','US30Y','SPX','NDX','DJI','RUT','DAX','FTSE','CAC','HSI','N225'
+  'US10Y','US30Y','SPX','NDX','DJI','RUT','DAX','FTSE','CAC','HSI','N225',
+  // Index CFDs / commodities TradingView shows without an NSE/BSE prefix
+  'US30','US500','US100','US2000','NAS100','SPX500','UK100','EU50','DE40','GER40',
+  'FR40','JP225','HK50','HK33','AU200','IN50','USOIL','UKOIL','NATGAS','COPPER',
+  'GOLD','SILVER','XAGUSD','USDJPY','GBPJPY','EURINR','GBPINR','JPYINR'
 ]);
 function isLikelyIndianTicker(ticker) {
   if (!ticker) return false;
   if (ticker.includes('.')) return false;
   if (KNOWN_FOREIGN.has(ticker.toUpperCase())) return false;
-  if (ticker.startsWith('US') || ticker.startsWith('UK') || ticker.startsWith('EU')) return false;
   return true;
 }
 
@@ -43,6 +46,25 @@ async function readCache(ticker, consolidated) {
 function writeCache(ticker, consolidated, data) {
   const key = cacheKey(ticker, consolidated);
   chrome.storage.local.set({ [key]: { ts: Date.now(), data } }, () => {});
+}
+
+// ─── Peers cache — keyed by warehouse id, same 12h TTL as company data ───
+function peersCacheKey(warehouseId) {
+  return `peers_cache:${warehouseId}`;
+}
+async function readPeersCache(warehouseId) {
+  return new Promise(resolve => {
+    const key = peersCacheKey(warehouseId);
+    chrome.storage.local.get([key], (data) => {
+      const entry = data[key];
+      if (!entry) return resolve(null);
+      if (Date.now() - entry.ts > CACHE_TTL_MS) return resolve(null);
+      resolve(entry.data);
+    });
+  });
+}
+function writePeersCache(warehouseId, peers) {
+  chrome.storage.local.set({ [peersCacheKey(warehouseId)]: { ts: Date.now(), data: peers } }, () => {});
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
@@ -108,7 +130,11 @@ async function bseScreenerSlug(ticker) {
 }
 
 async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
-  if (!isLikelyIndianTicker(ticker)) {
+  const ex = String(exchange || '').trim().toUpperCase();
+  if (ex) {
+    // A known exchange is authoritative — only NSE/BSE carry Indian equity.
+    if (ex !== 'NSE' && ex !== 'BSE') throw new Error(indianEquityError(ticker));
+  } else if (!isLikelyIndianTicker(ticker)) {
     throw new Error(indianEquityError(ticker));
   }
   if (!forceRefresh) {
@@ -168,10 +194,14 @@ async function fetchViaScreenerSearch(ticker, consolidated) {
   if (!searchRes.ok) throw new Error(`Search HTTP ${searchRes.status}`);
   const results = await searchRes.json();
   if (!Array.isArray(results) || results.length === 0) throw new Error('No search results');
+  const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const tickerUp = ticker.toUpperCase();
   const match = results.find(r => {
     const url = (r.url || '').toUpperCase();
-    return url.includes(`/${ticker.toUpperCase()}/`) || url.endsWith(`/${ticker.toUpperCase()}`);
-  }) || results[0];
+    return url.includes(`/${tickerUp}/`) || url.endsWith(`/${tickerUp}`)
+      || norm(slugFromUrl(r.url)) === norm(ticker);
+  }) || (results.length === 1 ? results[0] : null);
+  if (!match) throw new Error(`No matching company for ${ticker} on Screener.in`);
   const foundSlug = slugFromUrl(match.url) || ticker;
   const pageRes = await fetchCompanyPage(foundSlug, consolidated);
   const parsed = parseScreenerHTML(pageRes.html, ticker);
@@ -473,9 +503,6 @@ async function fetchPeers(warehouseId, selfTicker) {
   if (!res.ok) throw new Error(`Peers HTTP ${res.status}`);
   const html = await res.text();
 
-  const bseLookup = await getBseLookup();
-  const byToken = bseLookup.byToken || {};
-
   const rows = [];
   // Default Screener order: S.No., Company, CMP, P/E, Mar Cap
   let col = { cmp: 2, pe: 3, mcap: 4 };
@@ -499,22 +526,30 @@ async function fetchPeers(warehouseId, selfTicker) {
       continue;
     }
 
-    const slug = decodeURIComponent(link[2]);
-    const isNumeric = /^\d+$/.test(slug);
-    const symbol = isNumeric
-      ? (byToken[slug] || null)
-      : slug.replace(/[&\-]/g, '_');
-
     rows.push({
       name: stripTags(link[3]),
-      slug,
-      symbol,
-      isSelf: slug.toUpperCase() === String(selfTicker || '').toUpperCase()
-        || (symbol && symbol.toUpperCase() === String(selfTicker || '').toUpperCase()),
+      slug: decodeURIComponent(link[2]),
       cells: picked,
     });
   }
-  return rows;
+
+  // Only pull the (large) Kite instruments map if a numeric BSE slug exists
+  const needsBse = rows.some(r => r.slug && /^\d+$/.test(r.slug));
+  const byToken = needsBse ? ((await getBseLookup()).byToken || {}) : {};
+
+  const selfUp = String(selfTicker || '').toUpperCase();
+  return rows.map(r => {
+    if (r.isMedian) return r;
+    const symbol = /^\d+$/.test(r.slug)
+      ? (byToken[r.slug] || null)
+      : r.slug.replace(/[&\-]/g, '_');
+    return {
+      ...r,
+      symbol,
+      isSelf: r.slug.toUpperCase() === selfUp
+        || (symbol && symbol.toUpperCase() === selfUp),
+    };
+  });
 }
 
 // ─── Shared HTML helpers ───
@@ -608,9 +643,15 @@ export function startScreenerFundamentals() {
         sendResponse({ ok: false, error: 'No warehouse ID provided' });
         return;
       }
-      fetchPeers(msg.warehouseId, msg.ticker)
-        .then(peers => sendResponse({ ok: true, peers }))
-        .catch(err => sendResponse({ ok: false, error: err.message }));
+      (async () => {
+        if (!msg.forceRefresh) {
+          const cached = await readPeersCache(msg.warehouseId);
+          if (cached) { sendResponse({ ok: true, peers: cached, cached: true }); return; }
+        }
+        const peers = await fetchPeers(msg.warehouseId, msg.ticker);
+        writePeersCache(msg.warehouseId, peers);
+        sendResponse({ ok: true, peers });
+      })().catch(err => sendResponse({ ok: false, error: err.message }));
       return true;
     }
   });

@@ -197,7 +197,7 @@ export function startEarningsCalendar() {
       }
       try {
         const data = await fetchEarnings(ticker);
-        writeCache(ticker, data);
+        if (data) writeCache(ticker, data); // don't pin a "no data" for 12h
         sendResponse({ ok: true, data, cached: false });
       } catch (err) {
         sendResponse({ ok: false, error: err.message });
