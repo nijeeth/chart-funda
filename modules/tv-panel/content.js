@@ -228,9 +228,15 @@
     widget.querySelector("#tvf-back-btn").addEventListener("click", (e) => {
       e.stopPropagation();
       if (!lastPeerSymbol) return;
-      sendRuntimeMessage({ type: "tvf_request_symbol", symbol: lastPeerSymbol });
+      const target = lastPeerSymbol;
       lastPeerSymbol = null;
       updateBackBtn();
+      openChartPreferNse(target).then((opened) => {
+        if (!opened || !opened.ok) return;
+        lastManualSwitchAt = Date.now();
+        currentExchange = opened.exchange;
+        onTickerChanged(opened.ticker);
+      });
     });
 
     widget.querySelector("#tvf-theme-btn").addEventListener("click", (e) => {
