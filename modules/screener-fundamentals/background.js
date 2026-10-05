@@ -100,14 +100,14 @@ function topRatiosHaveNumbers(html) {
   return /<span[^>]*class="[^"]*\bnumber\b[^"]*"[^>]*>\s*[-–]?\d/i.test(block);
 }
 
-/** Data columns in the quarters table (the first <th> is the row-label). */
+/** Quarter columns = <th> headers that look like "Dec 2021" etc. */
 function quartersColumnCount(html) {
   const start = String(html || '').indexOf('id="quarters"');
   if (start === -1) return 0;
   const end = html.indexOf('</table>', start);
   const block = html.slice(start, end === -1 ? start + 30000 : end);
-  const heads = block.match(/<th[^>]*>/g);
-  return heads ? heads.length - 1 : 0;
+  const m = block.match(/<th[^>]*>\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{4}\s*<\/th>/gi);
+  return m ? m.length : 0;
 }
 
 /**
