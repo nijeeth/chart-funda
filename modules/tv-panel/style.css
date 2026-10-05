@@ -362,15 +362,17 @@
 
 .tvf-refresh-btn {
   background: transparent;
-  border: 1px solid var(--tvf-border);
-  color: var(--tvf-muted);
+  border: 1px solid rgba(192, 132, 252, 0.5);
+  color: #c084fc;
   border-radius: 6px;
   padding: 2px 10px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.tvf-refresh-btn:hover { background: var(--tvf-bg-2); color: var(--tvf-text); flex-shrink: 0; }
+.tvf-refresh-btn:hover { background: rgba(192, 132, 252, 0.12); }
 
 .tvf-feed-status {
   display: flex;
@@ -461,12 +463,12 @@
   text-transform: uppercase;
 }
 
-.tvf-growth-heading      { color: var(--tvf-accent); }
+.tvf-growth-heading      { color: #c084fc; }
 .tvf-pros-heading        { color: var(--tvf-up); }
 .tvf-cons-heading        { color: var(--tvf-down); }
 .tvf-shareholding-heading { color: #a78bfa; }
 .tvf-peers-heading       { color: #f5a623; }
-.tvf-filings-heading     { color: #60a5fa; }
+.tvf-filings-heading     { color: #fb923c; }
 
 .tvf-info-btn {
   background: transparent;
@@ -479,7 +481,7 @@
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
-  cursor: help;
+  cursor: default;
   vertical-align: 2px;
   text-transform: none;
 }
@@ -722,7 +724,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--tvf-accent);
+  color: #c084fc;
 }
 .tvf-rs-exp { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--tvf-muted); }
 
@@ -735,6 +737,8 @@
 .tvf-rs-rank,
 .tvf-rs-delta { font-size: 13px; font-weight: 600; }
 .tvf-rs-delta { color: var(--tvf-muted); }
+.tvf-rs-delta .tvf-up,
+.tvf-rs-delta .tvf-down { font-size: 15px; font-weight: 700; }
 
 .tvf-rs-empty {
   font-size: 12px;
