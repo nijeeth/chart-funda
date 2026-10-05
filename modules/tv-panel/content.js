@@ -81,6 +81,7 @@
   let lastManualSwitchAt = 0;
   let clickOutsideOn = true;
   let earningsVisible = false;
+  let standaloneNoteVisible = false;
   let lastPeerSymbol = null; // set only when a peer row is clicked; Back returns to it once
 
   function detectTheme() {
@@ -142,6 +143,7 @@
         </div>
 
         <div class="tvf-status-bar" id="tvf-status-bar"></div>
+        <div class="tvf-feed-line tvf-status-amber" id="tvf-standalone-note" style="display:none"><span class="tvf-status-dot"></span>No consolidated results — standalone figures shown</div>
         <div class="tvf-earnings-banner" id="tvf-earnings-banner" style="display:none"></div>
         <div class="tvf-feed-status" id="tvf-feed-status" style="display:none">
           <div class="tvf-feed-line" id="tvf-feed-rs" style="display:none"></div>
@@ -321,6 +323,8 @@
     if (sb) sb.style.display = feedMode ? "none" : "";
     if (eb) eb.style.display = feedMode ? "none" : (earningsVisible ? "flex" : "none");
     if (fs) fs.style.display = feedMode ? "flex" : "none";
+    const sn = document.getElementById("tvf-standalone-note");
+    if (sn) sn.style.display = feedMode ? "none" : (standaloneNoteVisible ? "flex" : "none");
   }
 
 
@@ -342,6 +346,9 @@
     }
     renderEarningsBanner(null);
     setFeedStatus(null, null);
+    standaloneNoteVisible = false;
+    const sn = document.getElementById('tvf-standalone-note');
+    if (sn) sn.style.display = 'none';
     const tl = document.getElementById('tvf-trendlyne-link');
     if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
     const fl = document.getElementById('tvf-filings-loading');
@@ -461,6 +468,9 @@ function renderStatusBar(cached, staleness, growth, standaloneFallback) {
     <span class="tvf-status-label">${liveText}</span>
     <span class="tvf-status-date">data fetched from Q ending ${esc(quarterEndingLabel(latestQ))}${sourceNote}</span>
   `;
+  standaloneNoteVisible = !!standaloneFallback;
+  const note = document.getElementById('tvf-standalone-note');
+  if (note) note.style.display = (standaloneNoteVisible && activeTab !== 'filings') ? 'flex' : 'none';
 }
 
 function renderSector(sector) {
