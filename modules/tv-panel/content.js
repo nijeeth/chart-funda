@@ -122,6 +122,7 @@
               <div class="tvf-company-name" id="tvf-company-name">Loading…</div>
             </div>
             <div class="tvf-header-actions">
+              <span class="tvf-rs-chip" id="tvf-rs-chip" style="display:none" title="Custom Fish RS Rank (Experimental)"></span>
               <button class="tvf-icon-btn tvf-cons-btn" id="tvf-cons-btn" title="Consolidated / Standalone">CON</button>
               <button class="tvf-icon-btn" id="tvf-theme-btn" title="Toggle theme"></button>
               <button class="tvf-icon-btn" id="tvf-close-btn" title="Close">✕</button>
@@ -187,7 +188,20 @@
   }
 
   function bindShellEvents(widget) {
-    widget.querySelector("#tvf-pill").addEventListener("click", togglePanel);
+    // Single click toggles the panel; double-click toggles pill size instead.
+    let pillClickTimer = null;
+    widget.querySelector("#tvf-pill").addEventListener("click", (e) => {
+      if (pillClickTimer) {
+        clearTimeout(pillClickTimer);
+        pillClickTimer = null;
+        sendRuntimeMessage({ type: "tvf_change_pill" });
+      } else {
+        pillClickTimer = setTimeout(() => {
+          pillClickTimer = null;
+          togglePanel();
+        }, 260);
+      }
+    });
     widget.querySelector("#tvf-close-btn").addEventListener("click", (e) => {
       e.stopPropagation();
       closePanel();
@@ -328,6 +342,8 @@
     if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
     const fl = document.getElementById('tvf-filings-loading');
     if (fl) fl.style.display = 'none';
+    const rc = document.getElementById('tvf-rs-chip');
+    if (rc) rc.style.display = 'none';
   }
 
   function onTickerChanged(ticker) {
@@ -813,6 +829,17 @@ function requestFilings(ticker, forceRefresh) {
       setFeedStatus(d.rsGen, d.newsGen);
       renderRsBlock(d.rs, d.nseOnly);
       renderFilings(d.filings, d.nseOnly);
+      const chip = document.getElementById('tvf-rs-chip');
+      if (chip) {
+        const rank = d.rs && d.rs.rank;
+        if (!d.nseOnly && rank != null) {
+          chip.textContent = Math.round(rank);
+          chip.className = `tvf-rs-chip ${rank >= 95 ? 'tvf-up' : 'tvf-down'}`;
+          chip.style.display = '';
+        } else {
+          chip.style.display = 'none';
+        }
+      }
     }
   );
 }

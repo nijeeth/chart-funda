@@ -284,10 +284,28 @@
   border-color: #1d4ed8;
   font-weight: 600;
   letter-spacing: 0.04em;
-  min-width: 40px;
+  min-width: 46px;
+  width: 46px;
 }
 
 .tvf-cons-btn:hover { background: #1e40af; }
+
+/* Fish RS rank chip in the header actions row */
+.tvf-rs-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: default;
+}
+.tvf-rs-chip.tvf-up { color: var(--tvf-up); background: rgba(8, 153, 129, 0.12); }
+.tvf-rs-chip.tvf-down { color: var(--tvf-down); background: rgba(242, 54, 69, 0.12); }
 
 .tvf-tabs {
   display: flex;
@@ -317,7 +335,7 @@
   background: rgba(91, 95, 199, 0.14);
 }
 .tvf-tab + .tvf-tab {
-  border-left: 1px solid var(--tvf-border);
+  border-left: 1px solid #c084fc;
 }
 #tvf-widget[data-theme="light"] .tvf-tab:not(.tvf-tab-active) {
   color: var(--tvf-text);
