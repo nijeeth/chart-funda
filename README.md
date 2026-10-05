@@ -2,7 +2,7 @@
 
 Indian stock fundamentals, ownership, and peers beside your TradingView chart. Includes an optional Chartink redirect.
 
-Chart Funda is a free Chrome extension for NSE and BSE listed companies. Open a chart and the figures sit next to it. Version 1.0.0 is the public Chrome Web Store release.
+Chart Funda is a free Chrome extension for NSE and BSE listed companies. Open a chart and the figures sit next to it. Version 2.0.0 adds a corporate-filings tab and the experimental Fish RS rank.
 
 Chart Funda is an independent extension. It is not made by TradingView, Screener, Trendlyne, Chartink, or Zerodha. The figures are for reference. This extension does not give investment advice.
 
@@ -22,8 +22,11 @@ The panel works on Indian listed equity. Indexes, futures, and options show a sh
 - Growth for the latest reported quarter or half-year, against the quarter or Half-year before and the same period a year earlier, with a line naming the period the figures came from.
 - Strengths and concerns from the company page.
 - Shareholding for Promoters, FIIs, DIIs, Government, and Public, each with the change since last quarter and a small trend line.
-- Peers with current price, P/E, and market cap. The median row is marked. Click a peer to switch the chart in place.
-- A link to the company on Screener and on Tijori.
+- Peers with current price, P/E, and market cap. The median row is marked. Click a peer to switch the chart in place, then use the Back button to return to the original stock.
+- A Corp. Filings tab with recent NSE corporate filings — category chips for orders, results, resignations, M&A, insider trades, and more — each linking to the official NSE PDF.
+- The experimental Fish RS rank with 1W/1M/3M/6M history, at the top of the Filings tab and as a chip in the panel header.
+- The earnings date from Trendlyne, colored by how near it is.
+- A link to the company on Screener, Tijori, and Trendlyne.
 - Consolidated or standalone results. Consolidated is the default. The choice is saved.
 
 ## Appearance
@@ -38,6 +41,7 @@ or Click the credit bar in the Fundamental panel to open the dashboard
 
 - **Chartink redirect** — optional. When it is on, opening a stock on Chartink opens the NSE: symbol on TradingView instead.
 - **TradingView Fundamentals Panel** - Optional. When it is on, Tradingview website will show the chartfunda panel.
+- **Click Anywhere To Minimize Panel** — optional (on by default). Clicking the chart collapses the panel back to the pill.
 - A set of curated market links, grouped by category.
 
 
@@ -93,6 +97,8 @@ chart-funda/
 │   │   ├── page-bridge.js
 │   │   └── style.css
 │   |── earnings-calendar/
+│   |  └── background.js
+│   |── filings/
 │   |  └── background.js
 │   └── dashboard/
 │       ├── index.html
