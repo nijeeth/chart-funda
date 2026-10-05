@@ -167,14 +167,21 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
       console.log('[Screener Fundamentals] BSE scrip lookup failed:', e.message);
     }
   } else {
-    try {
-      const data = await fetchViaHTML(ticker, consolidated, ticker);
-      if (data && (Object.keys(data.ratios).length > 0 || data.info?.name)) {
-        writeCache(ticker, consolidated, data);
-        return data;
+    // TradingView normalizes '-' and '&' to '_' (BAJAJ_AUTO, M_M) — try the
+    // exchange spellings before falling back to search.
+    const slugs = ticker.includes('_')
+      ? [...new Set([ticker, ticker.replace(/_/g, '-'), ticker.replace(/_/g, '&')])]
+      : [ticker];
+    for (const slug of slugs) {
+      try {
+        const data = await fetchViaHTML(slug, consolidated, ticker);
+        if (data && (Object.keys(data.ratios).length > 0 || data.info?.name)) {
+          writeCache(ticker, consolidated, data);
+          return data;
+        }
+      } catch (e) {
+        console.log('[Screener Fundamentals] direct fetch failed:', e.message);
       }
-    } catch (e) {
-      console.log('[Screener Fundamentals] direct fetch failed:', e.message);
     }
   }
   try {
@@ -198,13 +205,20 @@ async function fetchViaHTML(slug, consolidated, ticker) {
 }
 
 async function fetchViaScreenerSearch(ticker, consolidated) {
-  const searchRes = await fetchWithTimeout(
-    `https://www.screener.in/api/company/search/?q=${encodeURIComponent(ticker)}&v=3`,
-    { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
-    4000
-  );
-  if (!searchRes.ok) throw new Error(`Search HTTP ${searchRes.status}`);
-  const results = await searchRes.json();
+  const doSearch = async (q) => {
+    const searchRes = await fetchWithTimeout(
+      `https://www.screener.in/api/company/search/?q=${encodeURIComponent(q)}&v=3`,
+      { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
+      4000
+    );
+    if (!searchRes.ok) throw new Error(`Search HTTP ${searchRes.status}`);
+    return searchRes.json();
+  };
+  let results = await doSearch(ticker);
+  // 'M_M' searches empty on Screener — the exchange form is 'M&M'
+  if ((!Array.isArray(results) || results.length === 0) && ticker.includes('_')) {
+    results = await doSearch(ticker.replace(/_/g, '&'));
+  }
   if (!Array.isArray(results) || results.length === 0) throw new Error('No search results');
   const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   const tickerUp = ticker.toUpperCase();
@@ -553,7 +567,7 @@ async function fetchPeers(warehouseId, selfTicker) {
   return rows.map(r => {
     if (r.isMedian) return r;
     const symbol = /^\d+$/.test(r.slug)
-      ? (byToken[r.slug] || null)
+      ? (byToken[r.slug] ? String(byToken[r.slug]).replace(/[&\-]/g, '_') : null)
       : r.slug.replace(/[&\-]/g, '_');
     return {
       ...r,

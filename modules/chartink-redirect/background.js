@@ -8,7 +8,6 @@
 
 import { get } from "../../shared/storage.js";
 
-const CHARTINK_STOCKS_PREFIX = "https://chartink.com/stocks/";
 const CHARTINK_STOCKS_NEW = "/stocks-new";
 const TRADINGVIEW_BASE = "https://in.tradingview.com/chart/?symbol=NSE:";
 
@@ -17,17 +16,20 @@ const TRADINGVIEW_BASE = "https://in.tradingview.com/chart/?symbol=NSE:";
  */
 function isChartinkStockUrl(url) {
   if (!url || typeof url !== "string") return false;
+  try {
+    const u = new URL(url);
+    if (!/(^|\.)chartink\.com$/.test(u.hostname)) return false;
 
-  // Classic style: https://chartink.com/stocks/SYMBOL.html
-  if (url.startsWith(CHARTINK_STOCKS_PREFIX) && url.endsWith(".html")) {
-    return true;
-  }
+    // Classic style: https://chartink.com/stocks/SYMBOL.html (query ignored)
+    if (u.pathname.startsWith("/stocks/") && u.pathname.endsWith(".html")) {
+      return true;
+    }
 
-  // Newer style: contains /stocks-new and has a symbol parameter
-  if (url.includes(CHARTINK_STOCKS_NEW) && url.includes("symbol=")) {
-    return true;
-  }
-
+    // Newer style: contains /stocks-new and has a symbol parameter
+    if (u.pathname.includes(CHARTINK_STOCKS_NEW) && u.searchParams.has("symbol")) {
+      return true;
+    }
+  } catch (e) {}
   return false;
 }
 
@@ -38,19 +40,16 @@ function isChartinkStockUrl(url) {
  */
 function extractSymbol(url) {
   try {
+    const u = new URL(url);
     // Classic: .../stocks/SYMBOL.html
-    if (url.startsWith(CHARTINK_STOCKS_PREFIX) && url.endsWith(".html")) {
-      const symbol = url
-        .replace(CHARTINK_STOCKS_PREFIX, "")
-        .replace(".html", "")
-        .trim();
+    if (u.pathname.startsWith("/stocks/") && u.pathname.endsWith(".html")) {
+      const symbol = decodeURIComponent(u.pathname.replace("/stocks/", "").replace(/\.html$/, "")).trim();
       return symbol || null;
     }
 
     // Newer: .../stocks-new?symbol=SYMBOL  (or other query params)
-    if (url.includes(CHARTINK_STOCKS_NEW)) {
-      const urlObj = new URL(url);
-      const symbol = urlObj.searchParams.get("symbol");
+    if (u.pathname.includes(CHARTINK_STOCKS_NEW)) {
+      const symbol = u.searchParams.get("symbol");
       return symbol ? symbol.trim() : null;
     }
   } catch (e) {
@@ -63,8 +62,10 @@ function extractSymbol(url) {
  * Build the TradingView URL for a given symbol (always NSE).
  */
 function buildTradingViewUrl(symbol) {
-  // Clean any accidental prefixes or special chars that Chartink sometimes adds
-  const clean = symbol.replace(/^NSE:/i, "").replace(/[^A-Za-z0-9._-]/g, "");
+  // TradingView spells '&' and '-' as '_' (M&M → M_M, BAJAJ-AUTO → BAJAJ_AUTO)
+  const clean = symbol.replace(/^NSE:/i, "")
+    .replace(/[&-]/g, "_")
+    .replace(/[^A-Za-z0-9._]/g, "");
   return TRADINGVIEW_BASE + clean.toUpperCase();
 }
 

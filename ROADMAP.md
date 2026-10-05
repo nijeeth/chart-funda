@@ -14,7 +14,18 @@ _Nothing in progress._
 
 ## Planned
 
-_Nothing planned yet._
+**2.1.0 audit follow-ups** (from the external code review, deferred after 2.0.0):
+
+- [ ] CF-04 — narrow the `tabs` permission: scope Chartink redirect via `webNavigation` + host permission or declarativeNetRequest.
+- [ ] CF-06 — abort/dedupe in-flight fetches on fast symbol switches (generation token or AbortController).
+- [ ] CF-10 — guard the 5s poll with `chrome.runtime.id` + clearInterval so orphaned content scripts stop cleanly after an extension update.
+- [ ] CF-12 — evict expired cache keys; cap screener entries (LRU); check `lastError` on storage writes.
+- [ ] CF-14 — authenticate the page↔content CustomEvent channel with a per-load nonce.
+- [ ] CF-17 — `detectTheme` fallback should ignore fully-transparent backgrounds.
+- [ ] CF-18 — YoY should pair quarters by matching period, not a fixed column offset.
+- [ ] CF-19 — allowlist sector links to Screener `/market/…` paths.
+- [ ] CF-20 — share the in-flight `getBseLookup` promise between concurrent callers.
+- [ ] CF-21 — check `chrome.runtime.lastError` on the peers response.
 
 ## Ideas
 

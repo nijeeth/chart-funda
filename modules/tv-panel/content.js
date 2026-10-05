@@ -83,6 +83,7 @@
   let earningsVisible = false;
   let standaloneNoteVisible = false;
   let lastPeerSymbol = null; // set only when a peer row is clicked; Back returns to it once
+  let pendingTicker = null; // ticker that changed while the panel was closed — fetched on open
 
   function detectTheme() {
     const root = document.documentElement;
@@ -300,6 +301,13 @@
     panelOpen = true;
     document.getElementById("tvf-panel").classList.add("tvf-panel-open");
     verifyLiveSymbol();
+    // Symbol may have changed while the panel was closed — fetch now.
+    if (pendingTicker) {
+      const t = pendingTicker;
+      pendingTicker = null;
+      loadFundamentals(t, false);
+      requestFilings(t, false);
+    }
   }
   function closePanel() {
     panelOpen = false;
@@ -347,8 +355,12 @@
     standaloneNoteVisible = false;
     const sn = document.getElementById('tvf-standalone-note');
     if (sn) sn.style.display = 'none';
+    for (const id of ['tvf-screener-link', 'tvf-tijori-link', 'tvf-trendlyne-link']) {
+      const a = document.getElementById(id);
+      if (a) a.removeAttribute('href');
+    }
     const tl = document.getElementById('tvf-trendlyne-link');
-    if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
+    if (tl) tl.style.display = 'none';
     const fl = document.getElementById('tvf-filings-loading');
     if (fl) fl.style.display = 'none';
     const rc = document.getElementById('tvf-rs-chip');
@@ -371,14 +383,20 @@
       switchTab("fundamentals");
       if (companyName) companyName.textContent = ticker;
       showError(msg);
+      pendingTicker = null;
       const fl = document.getElementById('tvf-filings-list');
       if (fl) fl.innerHTML = '<div class="tvf-placeholder">Not an Indian equity — filings not available.</div>';
       return;
     }
 
     if (companyName) companyName.textContent = ticker;
-    loadFundamentals(ticker, false);
-    requestFilings(ticker, false);
+    // Skip network work while the panel is closed — the pill alone updates.
+    if (panelOpen) {
+      loadFundamentals(ticker, false);
+      requestFilings(ticker, false);
+    } else {
+      pendingTicker = ticker;
+    }
   }
 
 
@@ -400,19 +418,17 @@
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(verifyLiveSymbol, 300);
     };
+    let attached = false;
     const attach = () => {
+      if (attached) return;
       const el = document.querySelector("title");
-      if (el) new MutationObserver(debouncedVerify).observe(el, { childList: true, characterData: true, subtree: true });
+      if (el) {
+        attached = true;
+        new MutationObserver(debouncedVerify).observe(el, { childList: true, characterData: true, subtree: true });
+      }
     };
     attach();
     window.addEventListener("load", attach);
-  }
-
-  function watchHistory() {
-    const wrap = (fn) => function (...args) { fn.apply(this, args); setTimeout(verifyLiveSymbol, 300); };
-    history.pushState = wrap(history.pushState.bind(history));
-    history.replaceState = wrap(history.replaceState.bind(history));
-    window.addEventListener("popstate", () => setTimeout(verifyLiveSymbol, 300));
   }
 
   function watchVisibility() {
@@ -937,7 +953,10 @@ function loadFundamentals(ticker, forceRefresh) {
     chrome.runtime.sendMessage(
       { type: 'FETCH_SCREENER', ticker, exchange: currentExchange, consolidated, forceRefresh: !!forceRefresh },
       (response) => {
-        if (ticker !== currentTicker) return;
+        chrome.storage.local.get(['consolidated'], (d) => {
+        // Drop responses for a superseded ticker or CON/STD mode —
+        // the toggle fires a fresh request for the new mode.
+        if (ticker !== currentTicker || (d.consolidated !== false) !== consolidated) return;
         showLoading(false);
         if (chrome.runtime.lastError || !response) {
           showError('Extension error — try reloading the tab.');
@@ -971,6 +990,7 @@ function loadFundamentals(ticker, forceRefresh) {
         } else {
           renderOwnershipPeersTab({ shareholding: response.data.shareholding, peers: [] });
         }
+        });
       }
     );
   });
@@ -1070,7 +1090,6 @@ async function verifyLiveSymbol() {
         if (!started) {
           started = true;
           watchTitle();
-          watchHistory();
           watchVisibility();
           document.addEventListener("pointerdown", (e) => {
             if (!clickOutsideOn || !panelOpen) return;

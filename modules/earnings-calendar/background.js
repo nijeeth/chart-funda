@@ -192,6 +192,12 @@ export function startEarningsCalendar() {
       if (!msg.forceRefresh) {
         const cached = await readCache(ticker);
         if (cached) {
+          // daysAway was computed at fetch time — recompute from the stored
+          // date so "Today"/"in N days" stays correct inside the cache TTL.
+          if (cached.data && cached.data.date) {
+            const utc = parseDisplayDate(cached.data.date);
+            if (utc != null) cached.data.daysAway = Math.round((utc - istDayUtc(new Date())) / 86400000);
+          }
           sendResponse({ ok: true, data: cached.data, cached: true });
           return;
         }
