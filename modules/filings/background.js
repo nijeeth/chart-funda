@@ -4,19 +4,21 @@
 //  NSE filings + Fish RS rank, filtered per ticker.
 //
 //  The JSON files carry a `generated_at` stamp — the same
-//  "last fetched" time the site shows. The host supports
-//  ETag/If-None-Match (304 = unchanged), so we can re-check
-//  freshness per request without downloading ~5 MB.
+//  "last fetched" time the site shows. The host doesn't expose
+//  ETag to extension fetches (no Access-Control-Expose-Headers),
+//  so we simply refresh the in-memory copy at most every few
+//  minutes — Chrome's HTTP cache keeps re-downloads cheap.
 //  Message type handled: FETCH_FILINGS
 // ─────────────────────────────────────────────────
 
 const FEED_BASE = 'https://fish-rs-board.pages.dev/data/';
+const FEED_REFRESH_MS = 10 * 60 * 1000; // re-download at most every 10 min
 
 // In-memory copy of the raw feeds — lives only as long as the
 // service worker; never written to chrome.storage (files are big).
 const feed = {
-  news: { gen: null, etag: null, json: null, inflight: null },
-  rs:   { gen: null, etag: null, json: null, inflight: null },
+  news: { gen: null, json: null, fetchedAt: 0, inflight: null },
+  rs:   { gen: null, json: null, fetchedAt: 0, inflight: null },
 };
 
 const META_KEY = { news: 'fb_news_gen', rs: 'fb_rs_gen' };
@@ -43,58 +45,33 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
   }
 }
 
-/** Persists {gen, etag}; tolerates the older plain-string stamp. */
-function feedMeta(raw) {
-  if (!raw) return { gen: null, etag: null };
-  return typeof raw === 'string' ? { gen: raw, etag: null } : raw;
-}
-
-async function downloadFeed(kind, res) {
-  if (!res) {
-    res = await fetchWithTimeout(`${FEED_BASE}${kind}.json`, { headers: { Accept: 'application/json' } }, 25000);
-  }
+async function downloadFeed(kind) {
+  const res = await fetchWithTimeout(`${FEED_BASE}${kind}.json`, { headers: { Accept: 'application/json' } }, 25000);
   if (!res.ok) throw new Error(`${kind}.json HTTP ${res.status}`);
   const json = await res.json();
   feed[kind].gen = json.generated_at || null;
-  feed[kind].etag = res.headers.get('ETag') || null;
   feed[kind].json = json;
-  storageSet({ [META_KEY[kind]]: { gen: feed[kind].gen, etag: feed[kind].etag } });
+  feed[kind].fetchedAt = Date.now();
+  storageSet({ [META_KEY[kind]]: { gen: feed[kind].gen } });
   return feed[kind];
 }
 
 /**
- * Returns { gen, json } for a feed. json is null when the server says the
- * file is unchanged (304 on If-None-Match) — the caller should serve its
- * per-ticker cache instead of re-downloading ~5 MB.
+ * Returns { gen, json } for a feed, re-downloading at most every
+ * FEED_REFRESH_MS. On failure falls back to the stale in-memory copy.
  */
 async function getFeed(kind, forceRefresh) {
   if (feed[kind].inflight) return feed[kind].inflight;
 
   const promise = (async () => {
-    if (forceRefresh) return downloadFeed(kind);
-    const meta = feedMeta((await storageGet([META_KEY[kind]]))[META_KEY[kind]]);
-    const etag = feed[kind].etag || meta.etag;
-    if (etag) {
-      try {
-        const res = await fetchWithTimeout(
-          `${FEED_BASE}${kind}.json`,
-          { headers: { 'If-None-Match': etag, Accept: 'application/json' } },
-          8000
-        );
-        if (res.status === 304) {
-          feed[kind].gen = feed[kind].gen || meta.gen;
-          feed[kind].etag = etag;
-          if (feed[kind].json) return feed[kind]; // memory copy is current
-          return { gen: feed[kind].gen, json: null }; // unchanged — serve ticker cache
-        }
-        if (res.ok) return downloadFeed(kind, res); // changed — body is already here
-      } catch (e) {
-        console.warn(`[Filings] ${kind} etag check failed:`, e.message);
-        if (feed[kind].json) return feed[kind]; // serve memory rather than nothing
-      }
+    const age = Date.now() - feed[kind].fetchedAt;
+    if (!forceRefresh && feed[kind].json && age < FEED_REFRESH_MS) return feed[kind];
+    try {
+      return await downloadFeed(kind);
+    } catch (e) {
+      if (feed[kind].json) return feed[kind]; // serve stale memory rather than nothing
+      throw e;
     }
-    if (feed[kind].json) return feed[kind]; // nothing to compare against
-    return downloadFeed(kind);
   })();
 
   feed[kind].inflight = promise;
@@ -110,10 +87,13 @@ async function getFeed(kind, forceRefresh) {
 /** news row: [symbol, subject, description, pdfUrl, "DD-Mon-YYYY HH:MM:SS", cls, label] */
 function filingsForTicker(json, ticker) {
   const t = String(ticker || '').toUpperCase();
+  // The feed uses the exchange spelling (BAJAJ-AUTO) where TV uses '_'
+  const tAlt = t.replace(/_/g, '-');
   const out = [];
   for (const sess of json.sessions || []) {
     for (const r of sess.rows || []) {
-      if (String(r[0]).toUpperCase() !== t) continue;
+      const sym = String(r[0]).toUpperCase();
+      if (sym !== t && sym !== tAlt) continue;
       out.push({
         date: sess.date || null,
         ts: r[4] || null,
@@ -131,9 +111,13 @@ function filingsForTicker(json, ticker) {
 /** rs row: [sym, name, msRS, fishRS, close, …, cat(15), msTrend(16), fishTrend(17)] */
 function rsForTicker(json, ticker) {
   const t = String(ticker || '').toUpperCase();
+  const tAlt = t.replace(/_/g, '-'); // feed uses the exchange spelling
   const sess = (json.sessions || [])[0];
   if (!sess) return null;
-  const row = (sess.rows || []).find((r) => String(r[0]).toUpperCase() === t);
+  const row = (sess.rows || []).find((r) => {
+    const sym = String(r[0]).toUpperCase();
+    return sym === t || sym === tAlt;
+  });
   if (!row) return null;
   const num = (v) => (v === null || v === undefined || isNaN(+v) ? null : +(+v).toFixed(1));
   const trend = (Array.isArray(row[17]) ? row[17] : []).map(num);
@@ -149,20 +133,17 @@ function rsForTicker(json, ticker) {
 }
 
 async function serveFeed(kind, ticker, forceRefresh, extract) {
-  const f = await getFeed(kind, forceRefresh);
-  if (f.json) {
+  try {
+    const f = await getFeed(kind, forceRefresh);
     const data = extract(f.json, ticker);
     storageSet({ [TICKER_KEY[kind](ticker)]: { gen: f.gen, data } });
     return { gen: f.gen, data };
+  } catch (e) {
+    // Feed unreachable — last-resort: the stored copy from a previous day
+    const cached = (await storageGet([TICKER_KEY[kind](ticker)]))[TICKER_KEY[kind](ticker)];
+    if (cached) return { gen: cached.gen, data: cached.data };
+    throw e;
   }
-  const cached = (await storageGet([TICKER_KEY[kind](ticker)]))[TICKER_KEY[kind](ticker)];
-  // Serve only when the per-ticker cache was built from the current feed
-  // generation — an older gen means the SW restarted and this is stale.
-  if (cached && cached.gen === f.gen) return { gen: cached.gen, data: cached.data };
-  const full = await downloadFeed(kind);
-  const data = extract(full.json, ticker);
-  storageSet({ [TICKER_KEY[kind](ticker)]: { gen: full.gen, data } });
-  return { gen: full.gen, data };
 }
 
 async function fetchFilingsBundle(ticker, exchange, forceRefresh) {

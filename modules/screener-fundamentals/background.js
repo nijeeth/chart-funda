@@ -49,14 +49,17 @@ function writeCache(ticker, consolidated, data) {
   chrome.storage.local.set({ [key]: { ts: Date.now(), data } }, () => {});
 }
 
-// Short-lived negative cache — a "not found" answer is remembered so
-// revisiting an unknown ticker doesn't cost 8 requests every time.
+// Short-lived negative cache — only for genuine "doesn't exist" answers
+// (404, no search match, no BSE scrip). Network/rate-limit failures are
+// never cached. Keyed by exchange: BSE:X not found ≠ NSE:X not found.
 const NOT_FOUND_TTL_MS = 30 * 60 * 1000;
-const nfKey = (ticker, consolidated) => `screener_nf:${ticker}:${consolidated}`;
-async function readNotFound(ticker, consolidated) {
+const notFound = (msg) => { const e = new Error(msg); e.notFound = true; return e; };
+const nfKey = (ticker, exchange, consolidated) =>
+  `screener_nf:${String(exchange || '').toUpperCase()}:${ticker}:${consolidated}`;
+async function readNotFound(ticker, exchange, consolidated) {
   return new Promise((resolve) => {
-    chrome.storage.local.get([nfKey(ticker, consolidated)], (data) => {
-      const entry = data[nfKey(ticker, consolidated)];
+    chrome.storage.local.get([nfKey(ticker, exchange, consolidated)], (data) => {
+      const entry = data[nfKey(ticker, exchange, consolidated)];
       resolve(!!(entry && Date.now() - entry.ts < NOT_FOUND_TTL_MS));
     });
   });
@@ -143,7 +146,7 @@ async function fetchCompanyPage(slug, consolidated) {
     }
   }
   const page = await fetchWithTimeout(root, { headers, redirect: 'follow' }, 8000);
-  if (page.status === 404) throw new Error(`${slug} not found on Screener.in`);
+  if (page.status === 404) throw notFound(`${slug} not found on Screener.in`);
   if (!page.ok) throw new Error(`HTTP ${page.status}`);
   return { url: page.url, html: await page.text(), standaloneFallback: !!consolidated };
 }
@@ -165,26 +168,28 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
   if (!forceRefresh) {
     const cached = await readCache(ticker, consolidated);
     if (cached) { cached._cached = true; return cached; }
-    if (await readNotFound(ticker, consolidated)) throw new Error(indianEquityError(ticker));
+    if (await readNotFound(ticker, exchange, consolidated)) throw new Error(indianEquityError(ticker));
   }
+  const misses = [];
   const isBse = String(exchange || '').toUpperCase() === 'BSE';
   if (isBse) {
     try {
       const token = await bseScreenerSlug(ticker);
-      if (!token) throw new Error(`No BSE scrip code for ${ticker}`);
+      if (!token) throw notFound(`No BSE scrip code for ${ticker}`);
       const data = await fetchViaHTML(token, consolidated, ticker);
       if (data && (Object.keys(data.ratios).length > 0 || data.info?.name)) {
         writeCache(ticker, consolidated, data);
         return data;
       }
     } catch (e) {
+      misses.push(e);
       console.log('[Screener Fundamentals] BSE scrip lookup failed:', e.message);
     }
   } else {
     // On NSE TradingView normalizes '-' to '_' (BAJAJ_AUTO) but keeps '&'
-    // (NSE:M&M is real) — so only the '-' variant can exist.
+    // (NSE:M&M is real) — the raw '_' slug can never exist, so only try '-'.
     const slugs = ticker.includes('_')
-      ? [...new Set([ticker, ticker.replace(/_/g, '-')])]
+      ? [...new Set([ticker.replace(/_/g, '-')])]
       : [ticker];
     for (const slug of slugs) {
       try {
@@ -194,6 +199,7 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
           return data;
         }
       } catch (e) {
+        misses.push(e);
         console.log('[Screener Fundamentals] direct fetch failed:', e.message);
       }
     }
@@ -205,9 +211,14 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
       return data;
     }
   } catch (e) {
+    misses.push(e);
     console.log('[Screener Fundamentals] search API failed:', e.message);
   }
-  chrome.storage.local.set({ [nfKey(ticker, consolidated)]: { ts: Date.now() } }, () => {});
+  // Cache the miss only when every path reported a genuine "not found" —
+  // transient network/rate-limit failures must retry on the next visit.
+  if (misses.length > 0 && misses.every((e) => e && e.notFound)) {
+    chrome.storage.local.set({ [nfKey(ticker, exchange, consolidated)]: { ts: Date.now() } }, () => {});
+  }
   throw new Error(indianEquityError(ticker));
 }
 
@@ -238,7 +249,7 @@ async function fetchViaScreenerSearch(ticker, consolidated) {
       results = await doSearch(ticker.replace(/_/g, '&'));
     }
   }
-  if (!Array.isArray(results) || results.length === 0) throw new Error('No search results');
+  if (!Array.isArray(results) || results.length === 0) throw notFound('No search results');
   const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   const tickerUp = ticker.toUpperCase();
   const match = results.find(r => {
@@ -246,7 +257,7 @@ async function fetchViaScreenerSearch(ticker, consolidated) {
     return url.includes(`/${tickerUp}/`) || url.endsWith(`/${tickerUp}`)
       || norm(slugFromUrl(r.url)) === norm(ticker);
   }) || (results.length === 1 ? results[0] : null);
-  if (!match) throw new Error(`No matching company for ${ticker} on Screener.in`);
+  if (!match) throw notFound(`No matching company for ${ticker} on Screener.in`);
   const foundSlug = slugFromUrl(match.url) || ticker;
   const pageRes = await fetchCompanyPage(foundSlug, consolidated);
   const parsed = parseScreenerHTML(pageRes.html, ticker);

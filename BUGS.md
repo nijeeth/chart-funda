@@ -20,7 +20,7 @@ When a release ships, move fixed entries out of this file and into `CHANGELOG.md
 
 ## Open
 
-_No known open bugs._
+- [release] **Shipped 1.0.0 build lacks the XSS escaping** that landed in the fix pass — store users are exposed until 2.0.0 is published (CF-03). Close when 2.0.0 is live on the Chrome Web Store.
 
 ## In progress
 
@@ -31,11 +31,13 @@ _None._
 Reviewer signoff batch (review/v2.0.0 @ 2f36f58):
 
 - [screener] BSE `_` tickers (BAJAJ_AUTO, NAM_INDIA, M_M) failed entirely — the Kite `bySymbol` map was keyed by the exchange form only. Fixed: `_`-normalized symbols are indexed too (lookup cache bumped to v3).
-- [screener] NSE `_` tickers wasted a guaranteed-404 request and a can-never-match `&` variant (NSE keeps `&`, e.g. `NSE:M&M`). Fixed: only the `-` variant is tried. Corrected BUGS.md note — `M_M` is a BSE form; NSE is `M&M`.
+- [screener] NSE `_` tickers wasted a guaranteed-404 request and a can-never-match `&` variant (NSE keeps `&`, e.g. `NSE:M&M`). Fixed: only the `-` variant is tried.
+- [screener] The not-found cache originally also stored network/rate-limit failures, hiding the panel for 30 min after a blip. Fixed: only genuine misses (404 / no search match / no BSE scrip) are cached, keyed per exchange.
 - [screener] NSE peer slugs with `&` (M&M) were converted to `M_M` — peer clicks fell back to the BSE chart or failed. Fixed: only `-`→`_` on the NSE branch.
 - [screener] An unknown ticker re-ran all fetch paths on every visit. Fixed: 30-minute not-found cache.
-- [filings] The `Range` probe was ignored by the host (200, full body) — every ticker change downloaded ~6 MB. Fixed: ETag/If-None-Match conditional request (304 verified).
-- [filings] Per-ticker results were served without checking the feed generation — stale data after SW restart. Fixed: cache serves only when `cached.gen === feed.gen`.
+- [filings] The `Range` probe was ignored by the host (200, full body) — every ticker change downloaded ~6 MB. Fixed: plain download refreshed at most every 10 min (an ETag approach was dropped — the host doesn't send `Access-Control-Expose-Headers`, so extensions can't read the header).
+- [filings] Per-ticker results were served without checking the feed generation — stale data after SW restart. Fixed: extraction always runs against the fresh in-memory feed; the stored copy is only a network-down fallback.
+- [filings] `NSE:BAJAJ_AUTO`-style tickers matched nothing in the feed, which uses the exchange spelling (`BAJAJ-AUTO`). Fixed: `_`→`-` alternate form is matched too (RS rows included).
 - [manifest] `fish-rs-board.pages.dev` host permission would disable the extension for existing users on update. Fixed: removed — the host is CORS-open (`ACAO: *`), verified the fetch needs no permission.
 - [tv-panel] Double-clicking the pill threw ReferenceError (`sendRuntimeMessage` undefined) — the separate dblclick handler already toggles size; removed the dead call.
 - [tv-panel] `chrome.runtime.lastError` read inside a nested callback logged "Unchecked runtime.lastError". Fixed: captured in the response callback.
@@ -45,7 +47,7 @@ Reviewer signoff batch (review/v2.0.0 @ 2f36f58):
 
 Audit batch (from external review, commit 53abd3a):
 
-- [screener] TradingView `_` tickers (M_M, BAJAJ_AUTO, J&KBANK…) 404'd on Screener and returned empty search — fundamentals failed entirely for several large-caps. Fixed: direct fetch tries `_`→`-` then `_`→`&` slug variants; empty `_` searches retry with `&`. Verified live: M_M→M&M, BAJAJ_AUTO→BAJAJ-AUTO resolve. — reported 2026-10-05, affects v1.0.0
+- [screener] TradingView `_` tickers (BAJAJ_AUTO, NAM_INDIA, M_M on BSE) 404'd on Screener and returned empty search — fundamentals failed entirely for several large-caps. Fixed: NSE `_` tries the `-` slug; BSE resolves via normalized Kite symbols; search retries `-`/`&` spellings. Corrected rule: NSE keeps `&` (`NSE:M&M` is real); `M_M` is the BSE form. — reported 2026-10-05, affects v1.0.0
 - [screener] BSE peer symbols from Kite (e.g. `M&M`, `BAJAJ-AUTO`) weren't converted to TradingView `_` form — peer clicks could fail. Fixed: same `[&-]`→`_` normalization as NSE slugs. — reported 2026-10-05, affects v1.0.0
 - [earnings] Cached `daysAway` was frozen for the 12h TTL — "Earnings Today" could stay stale a day. Fixed: recomputed from the cached date on every read. — reported 2026-10-05, affects v1.0.0
 - [chartink] `M&M` was sanitized to `MM` (wrong symbol) and classic URLs with `?query` after `.html` never matched. Fixed: `&`/`-` map to `_`, pathname-based matching. — reported 2026-10-05, affects v1.0.0
