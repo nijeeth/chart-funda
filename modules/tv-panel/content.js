@@ -721,11 +721,12 @@ function renderPeers(peers) {
   el.querySelectorAll('.tvf-peer-clickable').forEach((row) => {
     row.addEventListener('click', () => {
       const symbol = row.dataset.symbol;
-      if (!symbol) return;
+      if (!symbol || symbol === currentTicker) return;
+      const prevTicker = currentTicker; // capture now — chart may switch before the reply lands
       openChartPreferNse(symbol).then((opened) => {
         if (!opened || !opened.ok) return;
         lastManualSwitchAt = Date.now();
-        if (currentTicker && currentTicker !== opened.ticker) lastPeerSymbol = currentTicker;
+        lastPeerSymbol = prevTicker;
         updateBackBtn();
         currentExchange = opened.exchange;
         onTickerChanged(opened.ticker);

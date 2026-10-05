@@ -295,18 +295,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  min-width: 26px;
-  height: 26px;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid currentColor;
-  font-size: 12px;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  font-size: 14px;
   font-weight: 800;
   cursor: default;
 }
-.tvf-rs-chip.tvf-up { color: var(--tvf-up); background: rgba(8, 153, 129, 0.12); }
-.tvf-rs-chip.tvf-down { color: var(--tvf-down); background: rgba(242, 54, 69, 0.12); }
+.tvf-rs-chip.tvf-up { color: var(--tvf-up); }
+.tvf-rs-chip.tvf-down { color: var(--tvf-down); }
 
 .tvf-tabs {
   display: flex;
