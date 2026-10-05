@@ -143,7 +143,6 @@
         </div>
 
         <div class="tvf-status-bar" id="tvf-status-bar"></div>
-        <div class="tvf-feed-line tvf-status-amber" id="tvf-standalone-note" style="display:none"><span class="tvf-status-dot"></span>No consolidated results — standalone figures shown</div>
         <div class="tvf-earnings-banner" id="tvf-earnings-banner" style="display:none"></div>
         <div class="tvf-feed-status" id="tvf-feed-status" style="display:none">
           <div class="tvf-feed-line" id="tvf-feed-rs" style="display:none"></div>
@@ -158,6 +157,7 @@
           <div class="tvf-tab-content" id="tvf-tab-fundamentals">
             <div class="tvf-tiles" id="tvf-tiles"></div>
             <div class="tvf-growth" id="tvf-growth"></div>
+            <div class="tvf-feed-line tvf-status-amber" id="tvf-standalone-note" style="display:none"><span class="tvf-status-dot"></span>No consolidated results — standalone figures shown</div>
             <div class="tvf-proscons" id="tvf-proscons"></div>
           </div>
           <div class="tvf-tab-content" id="tvf-tab-ownership-peers" style="display:none">
@@ -323,8 +323,6 @@
     if (sb) sb.style.display = feedMode ? "none" : "";
     if (eb) eb.style.display = feedMode ? "none" : (earningsVisible ? "flex" : "none");
     if (fs) fs.style.display = feedMode ? "flex" : "none";
-    const sn = document.getElementById("tvf-standalone-note");
-    if (sn) sn.style.display = feedMode ? "none" : (standaloneNoteVisible ? "flex" : "none");
   }
 
 
@@ -470,7 +468,8 @@ function renderStatusBar(cached, staleness, growth, standaloneFallback) {
   `;
   standaloneNoteVisible = !!standaloneFallback;
   const note = document.getElementById('tvf-standalone-note');
-  if (note) note.style.display = (standaloneNoteVisible && activeTab !== 'filings') ? 'flex' : 'none';
+  // Lives inside the Fundamentals tab content — hidden automatically on other tabs
+  if (note) note.style.display = standaloneNoteVisible ? 'flex' : 'none';
 }
 
 function renderSector(sector) {

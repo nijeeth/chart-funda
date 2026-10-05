@@ -499,7 +499,7 @@
   text-transform: uppercase;
 }
 
-.tvf-growth-heading      { color: #c084fc; }
+.tvf-growth-heading      { color: #ff00ff; }
 .tvf-pros-heading        { color: var(--tvf-up); }
 .tvf-cons-heading        { color: var(--tvf-down); }
 .tvf-shareholding-heading { color: #a78bfa; }
@@ -806,6 +806,9 @@ a.tvf-filing-card:hover {
 }
 
 .tvf-filings-heading { padding: 8px 12px 0; color: #fb923c; }
+
+/* Standalone fallback warning — sits under Growth in the Fundamentals tab */
+#tvf-standalone-note { margin: 6px 12px 4px; }
 
 /* Finmagine-style floating tooltip — no layout shift */
 .tvf-info-tip {
