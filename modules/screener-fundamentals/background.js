@@ -218,8 +218,9 @@ async function fetchScreenerData(ticker, consolidated, forceRefresh, exchange) {
   // transient network/rate-limit failures must retry on the next visit.
   if (misses.length > 0 && misses.every((e) => e && e.notFound)) {
     chrome.storage.local.set({ [nfKey(ticker, exchange, consolidated)]: { ts: Date.now() } }, () => {});
+    throw new Error(indianEquityError(ticker));
   }
-  throw new Error(indianEquityError(ticker));
+  throw new Error(`Could not reach Screener for ${ticker} — check your connection and try again.`);
 }
 
 async function fetchViaHTML(slug, consolidated, ticker) {
@@ -584,7 +585,9 @@ async function fetchPeers(warehouseId, selfTicker) {
 
     rows.push({
       name: stripTags(link[3]),
-      slug: decodeURIComponent(link[2]),
+      // href attributes can carry escaped entities (M&amp;M) — decode them,
+      // the raw slug must be a real symbol like 'M&M'
+      slug: stripTags(decodeURIComponent(link[2])),
       cells: picked,
     });
   }

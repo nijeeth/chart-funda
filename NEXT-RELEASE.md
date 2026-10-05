@@ -9,9 +9,25 @@ When the version is declared done:
 3. Move shipped items out of `ROADMAP.md` and fixed bugs out of `BUGS.md`.
 4. Bump `version` in `manifest.json`, re-zip, upload to the store.
 
-## Target: 2.0.0 (in progress)
+## Target: 2.1.0 (in progress)
+
+_2.0.0 shipped — its entries are now in `CHANGELOG.md`. Deferred audit items live in `ROADMAP.md`._
 
 ### Added
+
+_Nothing yet._
+
+### Fixed
+
+_Nothing yet._
+
+### Removed
+
+_Nothing yet._
+
+<!-- ── shipped 2.0.0 entries below, kept for reference ──
+
+### Added (2.0.0)
 
 - **Corp. Filings tab** — third panel tab showing the stock's recent NSE corporate filings from fish-rs-board.pages.dev: timestamp + colored subject chip (red/amber/green/blue/violet, classified server-side by the site) + full description; each card links to the official NSE archive PDF.
 - **Custom Fish RS Rank (Experimental)** — block at the top of the Filings tab: current rank plus 1W/1M/3M/6M history (green ≥95, red below), plus a small circular rank chip in the panel header.
@@ -62,3 +78,5 @@ When the version is declared done:
 - `LICENSE` restored locally (exists on GitHub).
 - Repo hygiene: stale "Step 3a" comments, duplicate HTML comment, and the `NON_INDIAN_EXCHANGES` set cleaned up.
 - Project tracking added: `ROADMAP.md`, `BUGS.md`, `WHATSNEW.md`, `AGENTS.md`, `NEXT-RELEASE.md`.
+
+-->

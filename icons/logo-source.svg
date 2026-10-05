@@ -8,7 +8,7 @@
 
   <!-- Background badge -->
   <rect width="128" height="128" rx="28" fill="url(#bg)"/>
-  <rect x="3" y="3" width="122" height="122" rx="25" fill="none" stroke="#33415c" stroke-width="1.5"/>
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="none" stroke="#2962ff" stroke-width="5"/>
 
   <!-- EMA support line -->
   <path d="M18 92 C 34 90, 46 86, 56 78 C 66 70, 70 60, 78 50 C 86 40, 96 34, 110 28"

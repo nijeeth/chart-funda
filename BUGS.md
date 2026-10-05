@@ -26,7 +26,12 @@ When a release ships, move fixed entries out of this file and into `CHANGELOG.md
 
 _None._
 
-## Fixed (awaiting release)
+## Fixed in 2.0.0
+
+Owner-testing round (round 3):
+
+- [peers] Peer slugs arrived HTML-entity-escaped (`M&amp;M`) — clicking Mahindra opened `BSE:M&amp;M` and showed "doesn't exist". Entities are now decoded when parsing peer rows. — reported 2026-10-05, affects v2.0.0-rc
+- [screener] Offline Refresh showed "works only on Indian listed equity". Network failures now show "Could not reach Screener — check your connection and try again." and are never cached. — reported 2026-10-05, affects v2.0.0-rc
 
 Reviewer signoff batch (review/v2.0.0 @ 2f36f58):
 
