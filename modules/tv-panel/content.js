@@ -148,6 +148,7 @@
           <div class="tvf-feed-line" id="tvf-feed-news" style="display:none"></div>
         </div>
         <div class="tvf-info-tip" id="tvf-filings-tip">Only NSE filings are shown (last ~2W data).<br>BSE filings are under development.</div>
+        <div class="tvf-info-tip" id="tvf-rs-tip">The numbers are the stock's rank at that past period.<br>e.g. 1M 97 → the rank was 97 one month ago.</div>
 
         <div class="tvf-scroll-area">
           <div class="tvf-loading" id="tvf-loading" style="display:none">Loading…</div>
@@ -219,24 +220,10 @@
     });
 
     // Finmagine-style floating info tip — hover or click, never shifts layout
-    const infoBtn = widget.querySelector("#tvf-filings-info");
-    const infoTip = widget.querySelector("#tvf-filings-tip");
-    const showInfoTip = (show) => {
-      if (show) {
-        const r = infoBtn.getBoundingClientRect();
-        infoTip.style.left = `${Math.max(8, r.right - 220)}px`;
-        infoTip.style.top = `${r.bottom + 6}px`;
-        infoTip.classList.add("visible");
-      } else {
-        infoTip.classList.remove("visible");
-      }
-    };
-    infoBtn.addEventListener("mouseenter", () => showInfoTip(true));
-    infoBtn.addEventListener("mouseleave", () => showInfoTip(false));
-    infoBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      showInfoTip(!infoTip.classList.contains("visible"));
-    });
+    attachInfoTip(
+      widget.querySelector("#tvf-filings-info"),
+      widget.querySelector("#tvf-filings-tip")
+    );
 
     widget.querySelector("#tvf-back-btn").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -751,6 +738,28 @@ function fmtFeedGen(gen) {
     (_m, d, mm, y) => `${d}-${FEED_MON[+mm - 1] || mm}-${y}`);
 }
 
+// Floating yellow tooltip for (i) buttons — hover shows, click toggles,
+// positioned near the button without affecting layout.
+function attachInfoTip(btn, tip) {
+  if (!btn || !tip) return;
+  const show = (on) => {
+    if (on) {
+      const r = btn.getBoundingClientRect();
+      tip.style.left = `${Math.max(8, r.right - 240)}px`;
+      tip.style.top = `${r.bottom + 6}px`;
+      tip.classList.add("visible");
+    } else {
+      tip.classList.remove("visible");
+    }
+  };
+  btn.addEventListener("mouseenter", () => show(true));
+  btn.addEventListener("mouseleave", () => show(false));
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    show(!tip.classList.contains("visible"));
+  });
+}
+
 function updateBackBtn() {
   const b = document.getElementById("tvf-back-btn");
   if (!b) return;
@@ -791,7 +800,9 @@ function renderRsBlock(rs, nseOnly) {
   }
   const colored = (v) => v == null ? '–' : `<span class="${v >= 95 ? 'tvf-up' : 'tvf-down'}">${Math.round(v)}</span>`;
   el.innerHTML = `
-    <div class="tvf-rs-head">Custom Fish RS Rank <span class="tvf-rs-exp">(Experimental)</span></div>
+    <div class="tvf-rs-head">Custom Fish RS Rank <span class="tvf-rs-exp">(Experimental)</span>
+      <button class="tvf-info-btn" id="tvf-rs-info" type="button">i</button>
+    </div>
     <div class="tvf-rs-vals">
       <span class="tvf-rs-delta">Rank&nbsp;${colored(rs.rank)}</span>
       <span class="tvf-rs-delta">1W&nbsp;${colored(rs.w1)}</span>
@@ -799,6 +810,7 @@ function renderRsBlock(rs, nseOnly) {
       <span class="tvf-rs-delta">3M&nbsp;${colored(rs.m3)}</span>
       <span class="tvf-rs-delta">6M&nbsp;${colored(rs.m6)}</span>
     </div>`;
+  attachInfoTip(el.querySelector('#tvf-rs-info'), document.getElementById('tvf-rs-tip'));
 }
 
 function fmtFilingTime(ts) {
