@@ -1,0 +1,12 @@
+# Working notes
+
+## Release tracking files
+
+- `ROADMAP.md` — future plans. Items move Ideas → Planned → In progress, and are removed when shipped.
+- `BUGS.md` — known bugs and their status (Open / In progress / Fixed awaiting release).
+- `WHATSNEW.md` — highlights for the current release only. Rewritten each release.
+- `CHANGELOG.md` — updated **only when the user says a version is done and ready for the Chrome Web Store**. New releases are prepended as a new section; never rewrite or remove previous version text.
+
+## Project
+
+Manifest V3 Chrome extension, no build step. Load unpacked from this folder to test; reload the extension and refresh the TradingView tab after changes.
