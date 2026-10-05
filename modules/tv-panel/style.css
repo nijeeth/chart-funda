@@ -311,6 +311,16 @@
   border-bottom-color: #5eead4;
 }
 
+.tvf-tab[data-tab="ownership-peers"].tvf-tab-active {
+  background: #b45309;
+  border-bottom-color: #f5a623;
+}
+
+.tvf-tab[data-tab="filings"].tvf-tab-active {
+  background: #5b5fc7;
+  border-bottom-color: #a5a8f5;
+}
+
 .tvf-earnings-banner {
   align-items: center;
   margin: 4px 10px 0;
@@ -471,12 +481,10 @@
 .tvf-cons-heading        { color: var(--tvf-down); }
 .tvf-shareholding-heading { color: #a78bfa; }
 .tvf-peers-heading       { color: #f5a623; }
-.tvf-filings-heading     { color: #fb923c; }
-
 .tvf-info-btn {
-  background: transparent;
-  border: 1px solid var(--tvf-muted);
-  color: var(--tvf-muted);
+  background: #fff3cd;
+  border: 1px solid #e6c200;
+  color: #5c4813;
   border-radius: 50%;
   width: 14px;
   height: 14px;
@@ -735,25 +743,39 @@
 .tvf-rs-delta { font-size: 13px; font-weight: 600; }
 .tvf-rs-delta { color: var(--tvf-muted); }
 .tvf-rs-delta .tvf-up,
-.tvf-rs-delta .tvf-down { font-size: 15px; font-weight: 700; }
+.tvf-rs-delta .tvf-down { font-size: 20px; font-weight: 700; }
 
 .tvf-rs-empty {
   font-size: 12px;
   color: var(--tvf-muted);
 }
 
-.tvf-filings-heading { padding: 4px 12px 0; }
+/* "NSE Filings" heading bar — earnings-released palette */
+.tvf-filings-heading {
+  margin: 8px 12px 0;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #e7ebf2;
+  color: #243044;
+}
 
-.tvf-filings-note {
-  margin: 2px 12px 4px;
+/* Finmagine-style floating tooltip — no layout shift */
+.tvf-info-tip {
+  position: fixed;
+  z-index: 2147483647;
+  display: none;
+  max-width: 240px;
   padding: 6px 8px;
   border-radius: 6px;
-  background: var(--tvf-bg-2);
-  border: 1px solid var(--tvf-border);
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: var(--tvf-muted);
+  background: #fff3cd;
+  border: 1px solid #e6c200;
+  color: #5c4813;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  pointer-events: none;
 }
+.tvf-info-tip.visible { display: block; }
 
 .tvf-filings-list {
   display: flex;

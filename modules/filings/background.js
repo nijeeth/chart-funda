@@ -137,10 +137,11 @@ function rsForTicker(json, ticker) {
   return {
     rank: num(row[3]),
     msRank: num(row[2]),
-    // fishTrend: [now, 1W ago, 1M ago, 3M ago]
-    w1: trend[1] ?? null,
-    m1: trend[2] ?? null,
-    m3: trend[3] ?? null,
+    // fishTrend: [1W ago, 1M ago, 3M ago, 6M ago]
+    w1: trend[0] ?? null,
+    m1: trend[1] ?? null,
+    m3: trend[2] ?? null,
+    m6: trend[3] ?? null,
   };
 }
 

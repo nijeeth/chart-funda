@@ -136,7 +136,7 @@
         <div class="tvf-tabs">
           <button class="tvf-tab tvf-tab-active" data-tab="fundamentals">Fundamentals</button>
           <button class="tvf-tab" data-tab="ownership-peers">Ownership &amp; Peers</button>
-          <button class="tvf-tab" data-tab="filings">Filings</button>
+          <button class="tvf-tab" data-tab="filings">Corp. Filings</button>
         </div>
 
         <div class="tvf-status-bar" id="tvf-status-bar"></div>
@@ -145,6 +145,7 @@
           <div class="tvf-feed-line" id="tvf-feed-rs" style="display:none"></div>
           <div class="tvf-feed-line" id="tvf-feed-news" style="display:none"></div>
         </div>
+        <div class="tvf-info-tip" id="tvf-filings-tip">Only NSE filings are shown (last ~2W data).<br>BSE filings are under development.</div>
 
         <div class="tvf-scroll-area">
           <div class="tvf-loading" id="tvf-loading" style="display:none">Loading…</div>
@@ -163,9 +164,8 @@
             <div class="tvf-filings-loading" id="tvf-filings-loading" style="display:none">Loading…</div>
             <div class="tvf-rs-block" id="tvf-rs-block"></div>
             <div class="tvf-filings-heading">NSE Filings
-              <button class="tvf-info-btn" id="tvf-filings-info" type="button" title="Only NSE filings are shown">i</button>
+              <button class="tvf-info-btn" id="tvf-filings-info" type="button">i</button>
             </div>
-            <div class="tvf-filings-note" id="tvf-filings-note" style="display:none">Only NSE filings are shown (last ~2W data).<br>BSE filings are under development.</div>
             <div class="tvf-filings-list" id="tvf-filings-list"></div>
           </div>
         </div>
@@ -201,10 +201,24 @@
       }
     });
 
-    widget.querySelector("#tvf-filings-info").addEventListener("click", (e) => {
+    // Finmagine-style floating info tip — hover or click, never shifts layout
+    const infoBtn = widget.querySelector("#tvf-filings-info");
+    const infoTip = widget.querySelector("#tvf-filings-tip");
+    const showInfoTip = (show) => {
+      if (show) {
+        const r = infoBtn.getBoundingClientRect();
+        infoTip.style.left = `${Math.max(8, r.right - 220)}px`;
+        infoTip.style.top = `${r.bottom + 6}px`;
+        infoTip.classList.add("visible");
+      } else {
+        infoTip.classList.remove("visible");
+      }
+    };
+    infoBtn.addEventListener("mouseenter", () => showInfoTip(true));
+    infoBtn.addEventListener("mouseleave", () => showInfoTip(false));
+    infoBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const n = document.getElementById("tvf-filings-note");
-      if (n) n.style.display = n.style.display === "none" ? "block" : "none";
+      showInfoTip(!infoTip.classList.contains("visible"));
     });
 
     widget.querySelector("#tvf-theme-btn").addEventListener("click", (e) => {
@@ -739,6 +753,7 @@ function renderRsBlock(rs, nseOnly) {
       <span class="tvf-rs-delta">1W&nbsp;${colored(rs.w1)}</span>
       <span class="tvf-rs-delta">1M&nbsp;${colored(rs.m1)}</span>
       <span class="tvf-rs-delta">3M&nbsp;${colored(rs.m3)}</span>
+      <span class="tvf-rs-delta">6M&nbsp;${colored(rs.m6)}</span>
     </div>`;
 }
 
