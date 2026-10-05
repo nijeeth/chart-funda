@@ -723,18 +723,18 @@ function feedAgeHours(gen) {
 }
 
 function setFeedStatus(rsGen, newsGen) {
-  const set = (id, gen, text) => {
+  const set = (id, gen, text, freshCls) => {
     const el = document.getElementById(id);
     if (!el) return;
     if (!gen) { el.style.display = 'none'; return; }
     const age = feedAgeHours(gen);
     const fresh = age !== null && age <= 48;
-    el.className = `tvf-feed-line ${fresh ? 'tvf-status-ok' : 'tvf-status-red'}`;
+    el.className = `tvf-feed-line ${fresh ? freshCls : 'tvf-status-red'}`;
     el.innerHTML = `<span class="tvf-status-dot"></span>${esc(`${text} ${gen}`)}`;
     el.style.display = 'flex';
   };
-  set('tvf-feed-rs', rsGen, 'Fish Rank Updated:');
-  set('tvf-feed-news', newsGen, 'NSE Filings fetched:');
+  set('tvf-feed-rs', rsGen, 'Fish Rank Updated:', 'tvf-status-ok');
+  set('tvf-feed-news', newsGen, 'NSE Filings fetched:', 'tvf-earnings-past');
 }
 
 function renderRsBlock(rs, nseOnly) {

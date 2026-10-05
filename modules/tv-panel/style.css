@@ -311,14 +311,18 @@
   border-bottom-color: #5eead4;
 }
 
-.tvf-tab[data-tab="ownership-peers"].tvf-tab-active {
-  background: #b45309;
-  border-bottom-color: #f5a623;
+/* Inactive tabs get a subtle tint of their own identity color */
+.tvf-tab[data-tab="fundamentals"]:not(.tvf-tab-active) {
+  background: rgba(15, 118, 110, 0.25);
 }
-
-.tvf-tab[data-tab="filings"].tvf-tab-active {
-  background: #5b5fc7;
-  border-bottom-color: #a5a8f5;
+.tvf-tab[data-tab="ownership-peers"]:not(.tvf-tab-active) {
+  background: rgba(180, 83, 9, 0.25);
+}
+.tvf-tab[data-tab="filings"]:not(.tvf-tab-active) {
+  background: rgba(91, 95, 199, 0.25);
+}
+#tvf-widget[data-theme="light"] .tvf-tab[data-tab]:not(.tvf-tab-active) {
+  color: var(--tvf-text);
 }
 
 .tvf-earnings-banner {
@@ -355,6 +359,7 @@
 .tvf-status-ok .tvf-status-dot { background: #146c36; }
 .tvf-status-amber .tvf-status-dot { background: #8a4b08; }
 .tvf-status-red .tvf-status-dot { background: #9b1c1c; }
+.tvf-earnings-past .tvf-status-dot { background: #243044; }
 
 .tvf-status-date { min-width: 0; }
 
@@ -614,7 +619,18 @@
 .tvf-peer-median span:last-child { text-align: right; }
 
 .tvf-peer-clickable { cursor: pointer; border-radius: 6px; }
-.tvf-peer-clickable:hover { background: var(--tvf-bg-2); }
+
+/* Light-yellow hover on all clickable rows/cards */
+.tvf-peer-clickable:hover,
+.tvf-share-row:hover,
+a.tvf-filing-card:hover {
+  background: rgba(255, 243, 205, 0.16);
+}
+#tvf-widget[data-theme="light"] .tvf-peer-clickable:hover,
+#tvf-widget[data-theme="light"] .tvf-share-row:hover,
+#tvf-widget[data-theme="light"] a.tvf-filing-card:hover {
+  background: #fff3cd;
+}
 .tvf-peer-name { font-weight: 500; color: var(--tvf-text); }
 .tvf-peer-median {
   background: #3d3420;
@@ -750,14 +766,7 @@
   color: var(--tvf-muted);
 }
 
-/* "NSE Filings" heading bar — earnings-released palette */
-.tvf-filings-heading {
-  margin: 8px 12px 0;
-  padding: 5px 10px;
-  border-radius: 6px;
-  background: #e7ebf2;
-  color: #243044;
-}
+.tvf-filings-heading { padding: 8px 12px 0; color: #fb923c; }
 
 /* Finmagine-style floating tooltip — no layout shift */
 .tvf-info-tip {
