@@ -117,18 +117,20 @@
       
       <div class="tvf-panel" id="tvf-panel">
         <div class="tvf-header">
-          <div class="tvf-header-text">
-            <div class="tvf-company-name" id="tvf-company-name">Loading…</div>
+          <div class="tvf-header-top">
+            <div class="tvf-header-text">
+              <div class="tvf-company-name" id="tvf-company-name">Loading…</div>
+            </div>
+            <div class="tvf-header-actions">
+              <button class="tvf-icon-btn" id="tvf-theme-btn" title="Toggle theme"></button>
+              <button class="tvf-icon-btn tvf-cons-btn" id="tvf-cons-btn" title="Consolidated / Standalone">CON</button>
+              <button class="tvf-icon-btn" id="tvf-close-btn" title="Close">✕</button>
+            </div>
+          </div>
+          <div class="tvf-header-sub">
             <div class="tvf-sector" id="tvf-sector"></div>
+            <button class="tvf-refresh-btn" id="tvf-refresh-btn" type="button" title="Refresh data">↻ Refresh</button>
           </div>
-          <div class="tvf-header-actions">
-            <button class="tvf-icon-btn" id="tvf-theme-btn" title="Toggle theme"></button>
-            <button class="tvf-icon-btn tvf-cons-btn" id="tvf-cons-btn" title="Consolidated / Standalone">CON</button>
-            <button class="tvf-icon-btn" id="tvf-close-btn" title="Close">✕</button>
-          </div>
-        </div>
-        <div class="tvf-header-row2">
-          <button class="tvf-refresh-btn" id="tvf-refresh-btn" type="button" title="Refresh data">↻ Refresh</button>
         </div>
 
         <div class="tvf-tabs">
@@ -160,7 +162,9 @@
           <div class="tvf-tab-content" id="tvf-tab-filings" style="display:none">
             <div class="tvf-filings-loading" id="tvf-filings-loading" style="display:none">Loading…</div>
             <div class="tvf-rs-block" id="tvf-rs-block"></div>
-            <div class="tvf-filings-heading">NSE Filings</div>
+            <div class="tvf-filings-heading">NSE Filings
+              <button class="tvf-info-btn" type="button" title="Only NSE filings are shown">i</button>
+            </div>
             <div class="tvf-filings-list" id="tvf-filings-list"></div>
           </div>
         </div>
@@ -300,7 +304,7 @@
     renderEarningsBanner(null);
     setFeedStatus(null, null);
     const tl = document.getElementById('tvf-trendlyne-link');
-    if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
+    if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); tl.parentElement.classList.remove('tvf-links-3'); }
     const fl = document.getElementById('tvf-filings-loading');
     if (fl) fl.style.display = 'none';
   }
@@ -689,11 +693,24 @@ function renderOwnershipPeersTab(data) {
 
 // ─── Filings tab (Fish RS Board feed) ───
 
+// generated_at is "DD-MM-YYYY HH:MM IST" — hours since the feed was built
+function feedAgeHours(gen) {
+  const m = String(gen || '').match(/(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const epoch = Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]) - 5.5 * 3600e3;
+  return (Date.now() - epoch) / 36e5;
+}
+
 function setFeedStatus(rsGen, newsGen) {
-  const rsEl = document.getElementById('tvf-feed-rs');
-  const newsEl = document.getElementById('tvf-feed-news');
-  if (rsEl) rsEl.textContent = rsGen ? `Fish Rank Updated: ${rsGen}` : '';
-  if (newsEl) newsEl.textContent = newsGen ? `NSE Filings fetched: ${newsGen}` : '';
+  const set = (id, gen, text) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = gen ? `${text} ${gen}` : '';
+    const age = feedAgeHours(gen);
+    el.classList.toggle('tvf-feed-stale', age !== null && age > 48);
+  };
+  set('tvf-feed-rs', rsGen, 'Fish Rank Updated:');
+  set('tvf-feed-news', newsGen, 'NSE Filings fetched:');
 }
 
 function renderRsBlock(rs, nseOnly) {
@@ -708,7 +725,7 @@ function renderRsBlock(rs, nseOnly) {
   el.innerHTML = `
     <div class="tvf-rs-head">Custom Fish RS Rank <span class="tvf-rs-exp">(Experimental)</span></div>
     <div class="tvf-rs-vals">
-      <span class="tvf-rs-rank">${colored(rs.rank)}</span>
+      <span class="tvf-rs-delta">Rank&nbsp;${colored(rs.rank)}</span>
       <span class="tvf-rs-delta">1W&nbsp;${colored(rs.w1)}</span>
       <span class="tvf-rs-delta">1M&nbsp;${colored(rs.m1)}</span>
       <span class="tvf-rs-delta">3M&nbsp;${colored(rs.m3)}</span>
@@ -790,12 +807,13 @@ function requestEarnings(ticker, forceRefresh) {
       const tl = document.getElementById('tvf-trendlyne-link');
       if (chrome.runtime.lastError || !response || !response.ok) {
         renderEarningsBanner(null);
-        if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
+        if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); tl.parentElement.classList.remove('tvf-links-3'); }
         return;
       }
       renderEarningsBanner(response.data);
       const url = response.data && response.data.url;
       if (tl) {
+        tl.parentElement.classList.toggle('tvf-links-3', !!url);
         if (url) { tl.href = url; tl.style.display = ''; }
         else { tl.style.display = 'none'; tl.removeAttribute('href'); }
       }
