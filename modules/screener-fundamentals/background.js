@@ -30,7 +30,8 @@ function isLikelyIndianTicker(ticker) {
 
 // ─── Caching layer ───
 function cacheKey(ticker, consolidated) {
-  return `screener_cache:${ticker}:${consolidated ? 'c5' : 's5'}`;
+  // v6: bump invalidates entries cached before the stub-consolidated fix
+  return `screener_cache:${ticker}:${consolidated ? 'c6' : 's6'}`;
 }
 async function readCache(ticker, consolidated) {
   return new Promise(resolve => {
