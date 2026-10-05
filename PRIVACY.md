@@ -2,11 +2,11 @@ Chart Funda — Privacy Policy
 
 
 
-Last updated: 27 Sep 2026
+Last updated: 5 Oct 2026
 
 
 
-Chart Funda is a Chrome extension that displays Indian stock market data (fundamentals, ownership, and peer comparisons) alongside TradingView charts.
+Chart Funda is a Chrome extension that displays Indian stock market data (fundamentals, ownership, peer comparisons, and corporate filings) alongside TradingView charts.
 
 
 
@@ -34,7 +34,9 @@ The extension uses Chrome's local storage (chrome.storage.local), which never le
 
 \- Whether the TradingView fundamentals panel is enabled
 
-\- A temporary cache of company data (cleared automatically after 12–24 hours)
+\- Whether click-anywhere-to-minimize is enabled
+
+\- A temporary cache of company, peer, filings, and rank data (short-lived)
 
 
 
