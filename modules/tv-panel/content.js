@@ -142,8 +142,8 @@
         <div class="tvf-status-bar" id="tvf-status-bar"></div>
         <div class="tvf-earnings-banner" id="tvf-earnings-banner" style="display:none"></div>
         <div class="tvf-feed-status" id="tvf-feed-status" style="display:none">
-          <span id="tvf-feed-rs"></span>
-          <span id="tvf-feed-news"></span>
+          <div class="tvf-feed-line" id="tvf-feed-rs" style="display:none"></div>
+          <div class="tvf-feed-line" id="tvf-feed-news" style="display:none"></div>
         </div>
 
         <div class="tvf-scroll-area">
@@ -163,8 +163,9 @@
             <div class="tvf-filings-loading" id="tvf-filings-loading" style="display:none">Loading…</div>
             <div class="tvf-rs-block" id="tvf-rs-block"></div>
             <div class="tvf-filings-heading">NSE Filings
-              <button class="tvf-info-btn" type="button" title="Only NSE filings are shown">i</button>
+              <button class="tvf-info-btn" id="tvf-filings-info" type="button" title="Only NSE filings are shown">i</button>
             </div>
+            <div class="tvf-filings-note" id="tvf-filings-note" style="display:none">Only NSE filings are shown (last ~2W data).<br>BSE filings are under development.</div>
             <div class="tvf-filings-list" id="tvf-filings-list"></div>
           </div>
         </div>
@@ -198,6 +199,12 @@
         loadFundamentals(currentTicker, true);
         requestFilings(currentTicker, true);
       }
+    });
+
+    widget.querySelector("#tvf-filings-info").addEventListener("click", (e) => {
+      e.stopPropagation();
+      const n = document.getElementById("tvf-filings-note");
+      if (n) n.style.display = n.style.display === "none" ? "block" : "none";
     });
 
     widget.querySelector("#tvf-theme-btn").addEventListener("click", (e) => {
@@ -304,7 +311,7 @@
     renderEarningsBanner(null);
     setFeedStatus(null, null);
     const tl = document.getElementById('tvf-trendlyne-link');
-    if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); tl.parentElement.classList.remove('tvf-links-3'); }
+    if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
     const fl = document.getElementById('tvf-filings-loading');
     if (fl) fl.style.display = 'none';
   }
@@ -705,9 +712,12 @@ function setFeedStatus(rsGen, newsGen) {
   const set = (id, gen, text) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.textContent = gen ? `${text} ${gen}` : '';
+    if (!gen) { el.style.display = 'none'; return; }
     const age = feedAgeHours(gen);
-    el.classList.toggle('tvf-feed-stale', age !== null && age > 48);
+    const fresh = age !== null && age <= 48;
+    el.className = `tvf-feed-line ${fresh ? 'tvf-status-ok' : 'tvf-status-red'}`;
+    el.innerHTML = `<span class="tvf-status-dot"></span>${esc(`${text} ${gen}`)}`;
+    el.style.display = 'flex';
   };
   set('tvf-feed-rs', rsGen, 'Fish Rank Updated:');
   set('tvf-feed-news', newsGen, 'NSE Filings fetched:');
@@ -807,13 +817,12 @@ function requestEarnings(ticker, forceRefresh) {
       const tl = document.getElementById('tvf-trendlyne-link');
       if (chrome.runtime.lastError || !response || !response.ok) {
         renderEarningsBanner(null);
-        if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); tl.parentElement.classList.remove('tvf-links-3'); }
+        if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
         return;
       }
       renderEarningsBanner(response.data);
       const url = response.data && response.data.url;
       if (tl) {
-        tl.parentElement.classList.toggle('tvf-links-3', !!url);
         if (url) { tl.href = url; tl.style.display = ''; }
         else { tl.style.display = 'none'; tl.removeAttribute('href'); }
       }

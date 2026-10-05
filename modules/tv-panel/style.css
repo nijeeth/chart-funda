@@ -179,7 +179,7 @@
 .tvf-links-row {
   flex-shrink: 0;
   display: flex;
-  gap: 0;
+  gap: 6px;
   padding: 6px 10px;
   border-top: 1px solid var(--tvf-border);
 }
@@ -377,19 +377,22 @@
 .tvf-feed-status {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin: 4px 10px 0;
+  gap: 3px;
+  margin: 0 10px;
+}
+
+/* Same box logic as .tvf-status-bar — green under 48h, red past it */
+.tvf-feed-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
   padding: 3px 8px;
   border-radius: 6px;
-  border: 1px solid var(--tvf-border);
-  background: var(--tvf-bg-2);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
-  color: var(--tvf-muted);
 }
-.tvf-feed-status span:empty { display: none; }
-.tvf-feed-stale { color: var(--tvf-down); }
 
 .tvf-tiles {
   display: grid;
@@ -635,12 +638,6 @@
 .tvf-link-tijori,
 .tvf-link-trendlyne { background: #0f766e; }
 
-/* Segmented group — buttons touch, outer corners rounded */
-.tvf-links-row .tvf-link-btn { border-radius: 0; }
-.tvf-links-row .tvf-link-btn:first-of-type { border-radius: 8px 0 0 8px; }
-.tvf-links-row:not(.tvf-links-3) .tvf-link-tijori { border-radius: 0 8px 8px 0; }
-.tvf-links-row.tvf-links-3 .tvf-link-trendlyne { border-radius: 0 8px 8px 0; }
-
 .tvf-ext { font-size: 12px; line-height: 1; }
 
 .tvf-site-logo {
@@ -746,6 +743,17 @@
 }
 
 .tvf-filings-heading { padding: 4px 12px 0; }
+
+.tvf-filings-note {
+  margin: 2px 12px 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--tvf-bg-2);
+  border: 1px solid var(--tvf-border);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--tvf-muted);
+}
 
 .tvf-filings-list {
   display: flex;
