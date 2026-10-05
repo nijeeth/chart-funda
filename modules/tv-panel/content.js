@@ -79,6 +79,8 @@
   let activeTab = "fundamentals";
   let tvTheme = "dark";
   let lastManualSwitchAt = 0;
+  let clickOutsideOn = true;
+  let earningsVisible = false;
 
   function detectTheme() {
     const root = document.documentElement;
@@ -125,14 +127,22 @@
             <button class="tvf-icon-btn" id="tvf-close-btn" title="Close">✕</button>
           </div>
         </div>
+        <div class="tvf-header-row2">
+          <button class="tvf-refresh-btn" id="tvf-refresh-btn" type="button" title="Refresh data">↻ Refresh</button>
+        </div>
 
         <div class="tvf-tabs">
           <button class="tvf-tab tvf-tab-active" data-tab="fundamentals">Fundamentals</button>
           <button class="tvf-tab" data-tab="ownership-peers">Ownership &amp; Peers</button>
+          <button class="tvf-tab" data-tab="filings">Filings</button>
         </div>
 
         <div class="tvf-status-bar" id="tvf-status-bar"></div>
         <div class="tvf-earnings-banner" id="tvf-earnings-banner" style="display:none"></div>
+        <div class="tvf-feed-status" id="tvf-feed-status" style="display:none">
+          <span id="tvf-feed-rs"></span>
+          <span id="tvf-feed-news"></span>
+        </div>
 
         <div class="tvf-scroll-area">
           <div class="tvf-loading" id="tvf-loading" style="display:none">Loading…</div>
@@ -147,11 +157,18 @@
             <div class="tvf-peers-heading">Peers</div>
             <div class="tvf-peers" id="tvf-peers"></div>
           </div>
+          <div class="tvf-tab-content" id="tvf-tab-filings" style="display:none">
+            <div class="tvf-filings-loading" id="tvf-filings-loading" style="display:none">Loading…</div>
+            <div class="tvf-rs-block" id="tvf-rs-block"></div>
+            <div class="tvf-filings-heading">NSE Filings</div>
+            <div class="tvf-filings-list" id="tvf-filings-list"></div>
+          </div>
         </div>
 
         <div class="tvf-links-row">
           <a class="tvf-link-btn tvf-link-screener" id="tvf-screener-link" href="#" target="_blank"><img class="tvf-site-logo" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAD8UExURQAAAAAAABwzAjJcBgAAADtpCCA6BUxpcSxPBgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEh+CU2NCQAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAEqBChAZAD5wCD9yCDZeCAAAABsxBAAAAB42BC1RBhwyBAAAAB0zBBguAgAAACtLBgAAAEF0CE6LCzxqCEB2CU6NBxgtAh01BBguAk+RCh01BB01BAkRABsvBBouAjdjCCI8ByNAAxguAgAAAAAAABkvAgAAAB00AgMDADprBzxuCjBXBjNeBh0zBS1SCCZDBSE6BXfWEWS4C3HJEKRIwWwAAABRdFJOUyUGboUBhW4AegwjDQskAgUUHAMHUW5bGllQHzVRWiAITx9CQWRJjCqKd4pYg4tKdxt5XIQ4aX6LimuMgh58aoEmV4wKVodAa1hyM4SCaD5fbXpZ2K0AAAAJcEhZcwAAAVIAAAFSAYQb4Q0AAAEBSURBVDjL7c63TsRAFIXhaxhgPcH22GBvsL05J3LOOcf3fxdGc4W0SJeCgo6/OsVXHFiiYqHYbDYazXsRAgk8sf5mexYkYL5eQ/CiaeDwDQSv/AcACwgW4XeAfUUD5vmOzfciEniyXls21eqySgHmJ60PW2tVksDhfQR95dIACggK8A3MXCfB7HUSyMOtFdPeqblOguTs3XZnrpOA3yB4NNdJAHMI5uEf/DHgxwgewFVTBFPlqhMETxz0ZHt3fD6+uuUyT0eDTmcwSvOLPD3o7e/0jiYaRLc9zOLs8jqpBpVSMY6LpUrg2JkN210BodDcPOGJDKOgrABUOYg8nFyL8BMxT5Tt3oU24wAAAFd6VFh0UmF3IHByb2ZpbGUgdHlwZSBpcHRjAAB4nOPyDAhxVigoyk/LzEnlUgADIwsuYwsTIxNLkxQDEyBEgDTDZAMjs1Qgy9jUyMTMxBzEB8uASKBKLgDqFxF08kI1lQAAAABJRU5ErkJggg==" />Screener<span class="tvf-ext">↗</span></a>
           <a class="tvf-link-btn tvf-link-tijori" id="tvf-tijori-link" href="#" target="_blank"><img class="tvf-site-logo" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAB2klEQVR4nO2bvUoDQRRGv9mZjUEjgjZ5AW0EW23F9HY2+iLaiI8i6APYC7YWCmJnYy0KgiZGs9mda+E2wR+4SuYTvadM5pKTwzKTIgMY/xunHZAz5FUv33I+m8UQMg4pNTmcVPH+6nZ4uLiBQjMatJ9VPjb2Qhvb6AvQ1E6PCQdg0mEhNuaBYkczqg4gUZbRdSi72snxEqraTUmmHohu8Ese/FGkdlOiDvDXsADqCS8N/dmRAIc3NyX6TdC7c0xjLXzn2SmAso/PD18BwiQA9dcAMAXIszvXjqkDBCl2493ENUppx4hKMVo6F1d8M1uvPtmqfBOonuOR9LNTjVuWwaPvboIM9hU+AL7xQ+gnyEljEy0clA8fvx9mAPSw5VaLw1ROSTfBCGl9eYRKvSYhdgqwBdhYALYAGwvAFmBjAdgCbCwAW4CNBWALsLEAbAE2FoAtwMYCsAXYWAC2ABsLwBZgYwHYAmwsAFuAjQVgC7CxAGwBNhaALcDGArAF2FgAtgAbC8AWYGMB2AJsLABbgI0FYAuwsQBsATapA+TwwId/mRcAvl6TEPWNkZ+Q5XKBwiHMAe/umngAg3pNQpJffxoeNzthWpbi0+jr2RRQdt1l3nk5Tu1k/GdeASbzbT5QHK9EAAAAAElFTkSuQmCC" />Tijori<span class="tvf-ext">↗</span></a>
+          <a class="tvf-link-btn tvf-link-trendlyne" id="tvf-trendlyne-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none">Trendlyne<span class="tvf-ext">↗</span></a>
         </div>
         <button class="tvf-credit" id="tvf-credit" type="button"><span class="tvf-credit-name">NijeethFish</span><span class="tvf-credit-sep">|</span><span class="tvf-credit-brand">Chart Funda v1.0</span></button>
       </div>
@@ -169,6 +186,14 @@
     widget.querySelector("#tvf-close-btn").addEventListener("click", (e) => {
       e.stopPropagation();
       closePanel();
+    });
+
+    widget.querySelector("#tvf-refresh-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (currentTicker) {
+        loadFundamentals(currentTicker, true);
+        requestFilings(currentTicker, true);
+      }
     });
 
     widget.querySelector("#tvf-theme-btn").addEventListener("click", (e) => {
@@ -244,7 +269,15 @@
     document.querySelectorAll(".tvf-tab-content").forEach((c) => (c.style.display = "none"));
     const content = document.getElementById(`tvf-tab-${tab}`);
     if (content) content.style.display = "block";
-    // Step 3b/3c will hook actual data loading in here
+    // Status rows are per-tab: Screener freshness + earnings belong to the
+    // fundamentals tabs; the filings tab shows its own feed timestamps.
+    const feedMode = tab === "filings";
+    const sb = document.getElementById("tvf-status-bar");
+    const eb = document.getElementById("tvf-earnings-banner");
+    const fs = document.getElementById("tvf-feed-status");
+    if (sb) sb.style.display = feedMode ? "none" : "";
+    if (eb) eb.style.display = feedMode ? "none" : (earningsVisible ? "flex" : "none");
+    if (fs) fs.style.display = feedMode ? "flex" : "none";
   }
 
 
@@ -260,11 +293,16 @@
   }
 
   function clearPanelContents() {
-    for (const id of ["tvf-tiles", "tvf-growth", "tvf-proscons", "tvf-shareholding", "tvf-peers", "tvf-sector", "tvf-status-bar"]) {
+    for (const id of ["tvf-tiles", "tvf-growth", "tvf-proscons", "tvf-shareholding", "tvf-peers", "tvf-sector", "tvf-status-bar", "tvf-rs-block", "tvf-filings-list"]) {
       const el = document.getElementById(id);
       if (el) el.innerHTML = "";
     }
     renderEarningsBanner(null);
+    setFeedStatus(null, null);
+    const tl = document.getElementById('tvf-trendlyne-link');
+    if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
+    const fl = document.getElementById('tvf-filings-loading');
+    if (fl) fl.style.display = 'none';
   }
 
   function onTickerChanged(ticker) {
@@ -283,11 +321,14 @@
       switchTab("fundamentals");
       if (companyName) companyName.textContent = ticker;
       showError(msg);
+      const fl = document.getElementById('tvf-filings-list');
+      if (fl) fl.innerHTML = '<div class="tvf-placeholder">Not an Indian equity — filings not available.</div>';
       return;
     }
 
     if (companyName) companyName.textContent = ticker;
     loadFundamentals(ticker, false);
+    requestFilings(ticker, false);
   }
 
 
@@ -331,19 +372,25 @@
 }
 
 
+function fmtBannerDate(d) {
+  return String(d || '').trim().replace(/\s+/g, '-'); // "01 Oct 2026" → "01-Oct-2026"
+}
+
 function renderEarningsBanner(earnings) {
   const el = document.getElementById('tvf-earnings-banner');
   if (!el) return;
-  if (!earnings || earnings.daysAway === undefined) { el.style.display = 'none'; return; }
+  if (!earnings || earnings.daysAway === undefined) { earningsVisible = false; if (activeTab !== 'filings') el.style.display = 'none'; return; }
   const { daysAway, quarter } = earnings;
+  const dateStr = fmtBannerDate(earnings.date);
   const near = Math.abs(daysAway) <= 10;
   let text, cls;
   if (daysAway === 0) { text = `Earnings Today · ${quarter}`; cls = 'tvf-earnings-today'; }
-  else if (daysAway > 0) { text = `Earnings in ${daysAway} day${daysAway === 1 ? '' : 's'} · ${quarter}`; cls = near ? 'tvf-earnings-near' : 'tvf-earnings-upcoming'; }
-  else { text = `Earnings released ${Math.abs(daysAway)} day${daysAway === -1 ? '' : 's'} ago · ${quarter}`; cls = near ? 'tvf-earnings-near' : 'tvf-earnings-past'; }
+  else if (daysAway > 0) { text = `Earnings: ${dateStr} (in ${daysAway}d) · ${quarter}`; cls = near ? 'tvf-earnings-near' : 'tvf-earnings-upcoming'; }
+  else { text = `Earnings released: ${dateStr} (${Math.abs(daysAway)}d ago) · ${quarter}`; cls = near ? 'tvf-earnings-near' : 'tvf-earnings-past'; }
   el.className = `tvf-earnings-banner ${cls}`;
   el.textContent = text;
-  el.style.display = 'flex';
+  earningsVisible = true;
+  if (activeTab !== 'filings') el.style.display = 'flex';
 }
 
 function quarterEndingLabel(period) {
@@ -368,13 +415,7 @@ function renderStatusBar(cached, staleness, growth, standaloneFallback) {
     <span class="tvf-status-dot ${cached ? 'tvf-dot-cached' : 'tvf-dot-live'}"></span>
     <span class="tvf-status-label">${liveText}</span>
     <span class="tvf-status-date">data fetched from Q ending ${esc(quarterEndingLabel(latestQ))}${sourceNote}</span>
-    <button class="tvf-refresh-btn" id="tvf-refresh-btn" type="button">Refresh</button>
   `;
-
-  document.getElementById('tvf-refresh-btn')?.addEventListener('click', () => {
-    if (currentTicker) loadFundamentals(currentTicker, true);
-  });
-
 }
 
 function renderSector(sector) {
@@ -646,6 +687,87 @@ function renderOwnershipPeersTab(data) {
   renderPeers(data.peers);
 }
 
+// ─── Filings tab (Fish RS Board feed) ───
+
+function setFeedStatus(rsGen, newsGen) {
+  const rsEl = document.getElementById('tvf-feed-rs');
+  const newsEl = document.getElementById('tvf-feed-news');
+  if (rsEl) rsEl.textContent = rsGen ? `Fish Rank Updated: ${rsGen}` : '';
+  if (newsEl) newsEl.textContent = newsGen ? `NSE Filings fetched: ${newsGen}` : '';
+}
+
+function renderRsBlock(rs, nseOnly) {
+  const el = document.getElementById('tvf-rs-block');
+  if (!el) return;
+  if (nseOnly) { el.innerHTML = ''; return; }
+  if (!rs || rs.rank == null) {
+    el.innerHTML = '<div class="tvf-rs-empty">Not in RS universe</div>';
+    return;
+  }
+  const colored = (v) => v == null ? '–' : `<span class="${v >= 95 ? 'tvf-up' : 'tvf-down'}">${v}</span>`;
+  el.innerHTML = `
+    <div class="tvf-rs-head">Custom Fish RS Rank <span class="tvf-rs-exp">(Experimental)</span></div>
+    <div class="tvf-rs-vals">
+      <span class="tvf-rs-rank">${colored(rs.rank)}</span>
+      <span class="tvf-rs-delta">1W&nbsp;${colored(rs.w1)}</span>
+      <span class="tvf-rs-delta">1M&nbsp;${colored(rs.m1)}</span>
+      <span class="tvf-rs-delta">3M&nbsp;${colored(rs.m3)}</span>
+    </div>`;
+}
+
+function fmtFilingTime(ts) {
+  // "04-Oct-2026 14:54:27" → "04-Oct 14:54"
+  const m = String(ts || '').match(/(\d{1,2})-([A-Za-z]{3})-\d{4}\s+(\d{1,2}:\d{2})/);
+  return m ? `${m[1]}-${m[2]} ${m[3]}` : String(ts || '');
+}
+
+function renderFilings(filings, nseOnly) {
+  const el = document.getElementById('tvf-filings-list');
+  if (!el) return;
+  if (nseOnly) {
+    el.innerHTML = '<div class="tvf-placeholder">NSE filings only — this is a BSE symbol.</div>';
+    return;
+  }
+  if (!filings || filings.length === 0) {
+    el.innerHTML = '<div class="tvf-placeholder">No recent filings.</div>';
+    return;
+  }
+  el.innerHTML = filings.map((f) => {
+    const chip = f.label ? `<span class="tvf-chip tvf-chip-${esc(f.cls)}">${esc(f.label)}</span>` : '';
+    const inner = `
+      <div class="tvf-filing-top"><span class="tvf-filing-when">${esc(fmtFilingTime(f.ts))}</span>${chip}</div>
+      <div class="tvf-filing-desc">${esc(f.desc)}</div>`;
+    return f.pdf
+      ? `<a class="tvf-filing-card" href="${esc(f.pdf)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
+      : `<div class="tvf-filing-card tvf-filing-nolink">${inner}</div>`;
+  }).join('');
+}
+
+function requestFilings(ticker, forceRefresh) {
+  const loadEl = document.getElementById('tvf-filings-loading');
+  const listEl = document.getElementById('tvf-filings-list');
+  const rsEl = document.getElementById('tvf-rs-block');
+  if (loadEl) loadEl.style.display = 'block';
+  if (listEl) listEl.innerHTML = '';
+  if (rsEl) rsEl.innerHTML = '';
+  setFeedStatus(null, null);
+  chrome.runtime.sendMessage(
+    { type: 'FETCH_FILINGS', ticker, exchange: currentExchange, forceRefresh: !!forceRefresh },
+    (response) => {
+      if (ticker !== currentTicker) return;
+      if (loadEl) loadEl.style.display = 'none';
+      if (chrome.runtime.lastError || !response || !response.ok) {
+        if (listEl) listEl.innerHTML = '<div class="tvf-placeholder">Could not load filings.</div>';
+        return;
+      }
+      const d = response.data || {};
+      setFeedStatus(d.rsGen, d.newsGen);
+      renderRsBlock(d.rs, d.nseOnly);
+      renderFilings(d.filings, d.nseOnly);
+    }
+  );
+}
+
 function showLoading(show) {
   const l = document.getElementById('tvf-loading');
   const e = document.getElementById('tvf-error');
@@ -665,11 +787,18 @@ function requestEarnings(ticker, forceRefresh) {
     { type: 'FETCH_EARNINGS', ticker, forceRefresh: !!forceRefresh },
     (response) => {
       if (ticker !== currentTicker) return;
+      const tl = document.getElementById('tvf-trendlyne-link');
       if (chrome.runtime.lastError || !response || !response.ok) {
         renderEarningsBanner(null);
+        if (tl) { tl.style.display = 'none'; tl.removeAttribute('href'); }
         return;
       }
       renderEarningsBanner(response.data);
+      const url = response.data && response.data.url;
+      if (tl) {
+        if (url) { tl.href = url; tl.style.display = ''; }
+        else { tl.style.display = 'none'; tl.removeAttribute('href'); }
+      }
     }
   );
 }
@@ -801,8 +930,9 @@ async function verifyLiveSymbol() {
   function init() {
     if (initPending) return;
     initPending = true;
-    chrome.storage.local.get(["pillMode", "themeOverride", "tvPanelEnabled"], (data) => {
+    chrome.storage.local.get(["pillMode", "themeOverride", "tvPanelEnabled", "clickOutsideMinimize"], (data) => {
       initPending = false;
+      clickOutsideOn = data.clickOutsideMinimize !== false;
       if (data.tvPanelEnabled === false) return;
       try {
         detectTheme();
@@ -816,6 +946,11 @@ async function verifyLiveSymbol() {
           watchTitle();
           watchHistory();
           watchVisibility();
+          document.addEventListener("pointerdown", (e) => {
+            if (!clickOutsideOn || !panelOpen) return;
+            const w = document.getElementById("tvf-widget");
+            if (w && !w.contains(e.target)) closePanel();
+          }, true);
           setInterval(verifyLiveSymbol, 5000);
         }
         verifyLiveSymbol();
@@ -829,7 +964,11 @@ async function verifyLiveSymbol() {
   function boot() {
     init();
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area !== "local" || !changes.tvPanelEnabled) return;
+      if (area !== "local") return;
+      if (changes.clickOutsideMinimize) {
+        clickOutsideOn = changes.clickOutsideMinimize.newValue !== false;
+      }
+      if (!changes.tvPanelEnabled) return;
       if (changes.tvPanelEnabled.newValue === false) {
         document.getElementById("tvf-widget")?.remove();
         currentTicker = null;

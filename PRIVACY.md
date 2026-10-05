@@ -52,6 +52,8 @@ To show fundamentals data, Chart Funda fetches publicly available pages from:
 
 \- google.com/s2/favicons (site icons shown next to dashboard links — image requests only, no data sent)
 
+\- fish-rs-board.pages.dev (curated NSE corporate filings list and the experimental Fish RS rank shown in the Filings tab — NSE PDF links open in a new tab on request, no filing content is fetched)
+
 
 
 These requests are made directly from your browser to display data in the extension. We do not see, log, or store the contents of these requests ourselves.
@@ -66,7 +68,7 @@ Permissions
 
 \- Tabs: used only by the optional Chartink redirect, to read a Chartink stock page's address and open the equivalent TradingView chart.
 
-\- Website access (Screener.in, Trendlyne.com, api.kite.trade, TradingView): to read the public company data listed above and show the panel on TradingView charts.
+\- Website access (Screener.in, Trendlyne.com, api.kite.trade, fish-rs-board.pages.dev, TradingView): to read the public company data listed above and show the panel on TradingView charts.
 
 
 

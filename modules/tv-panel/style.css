@@ -349,17 +349,36 @@
 .tvf-stale-amber { color: #f5a623; }
 .tvf-stale-red { color: var(--tvf-down); }
 
+.tvf-header-row2 {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 12px 6px;
+  border-bottom: 1px solid var(--tvf-border);
+}
+
 .tvf-refresh-btn {
-  margin-left: auto;
   background: transparent;
-  border: 1px solid currentColor;
-  color: inherit;
+  border: 1px solid var(--tvf-border);
+  color: var(--tvf-muted);
   border-radius: 6px;
-  padding: 2px 8px;
+  padding: 2px 10px;
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
 }
+.tvf-refresh-btn:hover { background: var(--tvf-bg-2); color: var(--tvf-text); }
+
+.tvf-feed-status {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 4px 10px 0;
+  padding: 3px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--tvf-muted);
+}
+.tvf-feed-status span:empty { display: none; }
 
 .tvf-tiles {
   display: grid;
@@ -424,13 +443,14 @@
 .tvf-shareholding-heading,
 .tvf-peers-heading,
 .tvf-pros-heading,
-.tvf-cons-heading {
+.tvf-cons-heading,
+.tvf-filings-heading {
   margin: 4px 0 6px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--tvf-text);
+  color: var(--tvf-accent);
 }
 
 .tvf-peers-heading { padding: 8px 12px 0; }
@@ -581,6 +601,8 @@
 .tvf-link-screener,
 .tvf-link-tijori { background: #0f766e; }
 
+.tvf-link-trendlyne { background: #5b5fc7; }
+
 .tvf-ext { font-size: 12px; line-height: 1; }
 
 .tvf-site-logo {
@@ -644,3 +666,100 @@
   font-weight: 500;
   color: var(--tvf-text);
 }
+
+/* ==========================================================================
+   FILINGS TAB
+   ========================================================================== */
+.tvf-filings-loading {
+  padding: 16px 12px;
+  font-size: 13px;
+  color: var(--tvf-muted);
+  text-align: center;
+}
+
+.tvf-rs-block {
+  padding: 10px 12px 4px;
+}
+
+.tvf-rs-head {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tvf-accent);
+}
+.tvf-rs-exp { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--tvf-muted); }
+
+.tvf-rs-vals {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 4px;
+}
+.tvf-rs-rank { font-size: 17px; font-weight: 700; }
+.tvf-rs-delta { font-size: 12px; font-weight: 600; }
+
+.tvf-rs-empty {
+  font-size: 12px;
+  color: var(--tvf-muted);
+}
+
+.tvf-filings-heading { padding: 4px 12px 0; }
+
+.tvf-filings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 12px 12px;
+}
+
+.tvf-filing-card {
+  display: block;
+  background: var(--tvf-bg-2);
+  border: 1px solid var(--tvf-border);
+  border-radius: 8px;
+  padding: 7px 9px;
+  text-decoration: none;
+  color: var(--tvf-text);
+}
+a.tvf-filing-card:hover { border-color: var(--tvf-accent); }
+.tvf-filing-nolink { opacity: 0.75; }
+
+.tvf-filing-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tvf-filing-when {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tvf-muted);
+  white-space: nowrap;
+}
+.tvf-filing-desc {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--tvf-text);
+}
+
+/* Subject chips — same palette as the Fish RS Board site */
+.tvf-chip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.tvf-chip-red     { background: rgba(248,113,113,.18); color: #f87171; }
+.tvf-chip-amber   { background: rgba(245,193,108,.18); color: #f5c16c; }
+.tvf-chip-green   { background: rgba(52,211,153,.18);  color: #34d399; }
+.tvf-chip-block   { background: rgba(96,165,250,.18);  color: #60a5fa; }
+.tvf-chip-insider { background: rgba(167,139,250,.18); color: #a78bfa; }
+
+#tvf-widget[data-theme="light"] .tvf-chip-red     { color: #b91c1c; }
+#tvf-widget[data-theme="light"] .tvf-chip-amber   { color: #92400e; }
+#tvf-widget[data-theme="light"] .tvf-chip-green   { color: #047857; }
+#tvf-widget[data-theme="light"] .tvf-chip-block   { color: #1d4ed8; }
+#tvf-widget[data-theme="light"] .tvf-chip-insider { color: #6d28d9; }

@@ -171,11 +171,12 @@ async function fetchEarnings(ticker) {
   const companyRes = await fetchWithTimeout(companyUrl, { headers: { Accept: 'text/html' } }, 8000);
   if (!companyRes.ok) throw new Error(`Trendlyne company HTTP ${companyRes.status}`);
   const boardUrl = findBoardMeetingUrl(await companyRes.text());
-  if (!boardUrl) return null;
+  if (!boardUrl) return { url: companyUrl };
 
   const boardRes = await fetchWithTimeout(boardUrl, { headers: { Accept: 'text/html' } }, 8000);
   if (!boardRes.ok) throw new Error(`Trendlyne board-meeting HTTP ${boardRes.status}`);
-  return nearestResultMeeting(await boardRes.text());
+  const meeting = nearestResultMeeting(await boardRes.text());
+  return { ...(meeting || {}), url: companyUrl };
 }
 
 export function startEarningsCalendar() {

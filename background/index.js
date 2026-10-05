@@ -15,6 +15,7 @@
 import { startChartinkRedirect } from "../modules/chartink-redirect/background.js";
 import { startScreenerFundamentals } from "../modules/screener-fundamentals/background.js";
 import { startEarningsCalendar } from "../modules/earnings-calendar/background.js";
+import { startFilings } from "../modules/filings/background.js";
 
 function startModule(label, startFn) {
   try {
@@ -28,6 +29,7 @@ function startModule(label, startFn) {
 startModule("Chartink Redirect", startChartinkRedirect);
 startModule("Screener Fundamentals", startScreenerFundamentals);
 startModule("Earnings Calendar", startEarningsCalendar);
+startModule("Filings", startFilings);
 
 function openDashboard() {
   chrome.tabs.create({

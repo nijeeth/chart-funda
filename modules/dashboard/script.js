@@ -164,6 +164,7 @@ function faviconUrl(domain) {
 // ============================================
 const toggleEl = document.getElementById("chartink-redirect-toggle");
 const panelToggleEl = document.getElementById("tv-panel-toggle");
+const clickOutsideToggleEl = document.getElementById("click-outside-toggle");
 
 async function initToggle() {
   const enabled = await get("chartinkRedirectEnabled");
@@ -178,6 +179,13 @@ async function initToggle() {
 
   panelToggleEl.addEventListener("change", async () => {
     await set("tvPanelEnabled", panelToggleEl.checked);
+  });
+
+  const clickOutside = await get("clickOutsideMinimize");
+  clickOutsideToggleEl.checked = clickOutside !== false;
+
+  clickOutsideToggleEl.addEventListener("change", async () => {
+    await set("clickOutsideMinimize", clickOutsideToggleEl.checked);
   });
 }
 

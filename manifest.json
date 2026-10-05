@@ -11,7 +11,8 @@
   "host_permissions": [
     "*://www.screener.in/*",
     "*://trendlyne.com/*",
-    "*://api.kite.trade/*"
+    "*://api.kite.trade/*",
+    "*://fish-rs-board.pages.dev/*"
   ],
   "background": {
     "service_worker": "background/index.js",

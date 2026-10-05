@@ -11,6 +11,22 @@ When the version is declared done:
 
 ## Target: 1.1.0 (in progress)
 
+### Added
+
+- **Filings tab** — third panel tab showing the stock's recent NSE corporate filings from fish-rs-board.pages.dev: timestamp + colored subject chip (red/amber/green/blue/violet, classified server-side by the site) + full description; each card links to the official NSE archive PDF.
+- **Custom Fish RS Rank (Experimental)** — block at the top of the Filings tab: current Fish RS rank plus 1W/1M/3M history, green at ≥95 / red below.
+- **Per-tab freshness rows** — on the Filings tab the status slot shows `Fish Rank Updated: <rs feed timestamp>` and `NSE Filings fetched: <news feed timestamp>` (the feed's own `generated_at`, not our fetch time) instead of the Screener status bar and earnings banner.
+- **Trendlyne button** in the links row — links to the company's Trendlyne overview page (URL comes from the earnings search; hidden when unavailable).
+- **Click outside to minimize** — clicking anywhere on the chart collapses the panel back to the pill. New dashboard toggle, default ON.
+- Earnings banner now shows the actual date: `Earnings released: 01-Aug-2026 (59d ago) · Q1 FY2027` (same coloring as before).
+
+### Changed
+
+- **Refresh button moved to the header** — sits below the close button, always visible including on errors (previously it lived inside the status bar which only renders after a successful load).
+- Section headings (Growth / Strengths / Concerns / Shareholding / Peers) are now blue.
+- Conditional feed fetching — the filings feeds are Range-probed for `generated_at` first (~200 bytes); the full file is only downloaded when it changed. Results are cached per ticker.
+- `manifest.json`: added `fish-rs-board.pages.dev` to host permissions.
+
 ### Fixed
 
 - Disabling the TradingView panel left a 5-second poll running that kept fetching data in the background — now stops entirely when the panel is off.

@@ -7,7 +7,8 @@ const DEFAULTS = {
   chartinkRedirectEnabled: true,
   tvPanelEnabled: true,
   consolidated: true,
-  themeOverride: null
+  themeOverride: null,
+  clickOutsideMinimize: true
 };
 
 export async function get(key) {
