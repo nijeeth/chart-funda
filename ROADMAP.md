@@ -14,8 +14,9 @@ _Nothing in progress._
 
 ## Planned
 
-**2.1.0 audit follow-ups** (from the external code review, deferred after 2.0.0):
+**Target: 2.0.1** — everything below ships in the next version. Audit follow-ups (external review), signoff leftovers, and post-release findings:
 
+- [ ] **Tab-scoped error display** — `#tvf-error` leaks onto Ownership & Peers and Corp. Filings; render it inside the Fundamentals tab only (BUGS.md).
 - [ ] CF-04 — narrow the `tabs` permission: scope Chartink redirect via `webNavigation` + host permission or declarativeNetRequest.
 - [ ] CF-06 — abort/dedupe in-flight fetches on fast symbol switches (generation token or AbortController).
 - [ ] CF-10 — guard the 5s poll with `chrome.runtime.id` + clearInterval so orphaned content scripts stop cleanly after an extension update.
@@ -31,6 +32,7 @@ _Nothing in progress._
 - [ ] R2-3 — add a short retry backoff when the filings feed is down (currently every request waits the 25 s timeout).
 - [ ] R2-5 — `fb_*_gen` meta keys are written but never read; remove or use.
 - [ ] S6 — earnings `isExactStock` compares raw tickers, so `_` symbols (BAJAJ_AUTO) get no earnings banner or Trendlyne link.
+- [ ] Pill position option — dashboard toggle to anchor the pill bottom-left instead of bottom-right (owner request, discussed post-signoff).
 
 ## Ideas
 
@@ -39,3 +41,4 @@ _Nothing here yet. Add ideas as they come up._
 ## Shipped
 
 - 1.0.0 — first public Chrome Web Store release. See `CHANGELOG.md`.
+- 2.0.0 — Corp. Filings tab, Fish RS rank, audit + signoff fix pass. Uploaded to the Chrome Web Store 2026-10-05. See `CHANGELOG.md`.

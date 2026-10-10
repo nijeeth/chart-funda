@@ -9,7 +9,7 @@ When the version is declared done:
 3. Move shipped items out of `ROADMAP.md` and fixed bugs out of `BUGS.md`.
 4. Bump `version` in `manifest.json`, re-zip, upload to the store.
 
-## Target: 2.1.0 (in progress)
+## Target: 2.0.1 (in progress)
 
 _2.0.0 shipped — its entries are now in `CHANGELOG.md`. Deferred audit items live in `ROADMAP.md`._
 

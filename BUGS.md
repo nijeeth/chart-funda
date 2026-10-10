@@ -20,7 +20,8 @@ When a release ships, move fixed entries out of this file and into `CHANGELOG.md
 
 ## Open
 
-- [release] **Shipped 1.0.0 build lacks the XSS escaping** that landed in the fix pass — store users are exposed until 2.0.0 is published (CF-03). Close when 2.0.0 is live on the Chrome Web Store.
+- [tv-panel] **Fundamentals fetch errors leak onto every tab** — `#tvf-error` lives outside the tab containers in `.tvf-scroll-area`, so a Screener failure shows the same error text on Ownership & Peers and Corp. Filings even when those feeds loaded fine. Seen on SBIN during the 10-Oct-2026 Screener outage: Corp. Filings showed feed stamps + the "Could not reach Screener" error instead of the 2 filing cards below it. Fix for 2.0.1: scope the error element to the Fundamentals tab (render inside `#tvf-tab-fundamentals` or hide it in `switchTab` for other tabs). — reported 2026-10-10, affects v2.0.0
+- [release] **Shipped 1.0.0 build lacks the XSS escaping** that landed in the fix pass — store users are exposed until 2.0.0 clears review (CF-03). Uploaded to the Chrome Web Store 2026-10-05; close once it's live.
 
 ## In progress
 
